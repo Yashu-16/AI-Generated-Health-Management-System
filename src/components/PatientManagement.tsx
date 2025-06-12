@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -382,9 +381,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                 <SelectItem value="Admitted">Admitted</SelectItem>
                 <SelectItem value="Stable">Stable</SelectItem>
                 <SelectItem value="Critical">Critical</SelectItem>
-                <SelectItem value="Discharged">Discharged</Select
-
-Item>
+                <SelectItem value="Discharged">Discharged</SelectItem>
               </SelectContent>
             </Select>
           </div>
