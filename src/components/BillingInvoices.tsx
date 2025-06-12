@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -103,7 +102,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
 
   const [newInvoice, setNewInvoice] = useState({
     patientId: "",
-    items: [{ description: "", quantity: 1, unitPrice: 0, category: "Consultation" }],
+    items: [{ description: "", quantity: 1, unitPrice: 0, total: 0, category: "Consultation" as const }],
     discount: 0,
     notes: ""
   });
@@ -117,7 +116,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   const handleAddItem = () => {
     setNewInvoice({
       ...newInvoice,
-      items: [...newInvoice.items, { description: "", quantity: 1, unitPrice: 0, category: "Consultation" }]
+      items: [...newInvoice.items, { description: "", quantity: 1, unitPrice: 0, total: 0, category: "Consultation" as const }]
     });
   };
 
@@ -163,8 +162,11 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
       issueDate: new Date(),
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
       items: newInvoice.items.map(item => ({
-        ...item,
-        total: item.quantity * item.unitPrice
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        total: item.quantity * item.unitPrice,
+        category: item.category
       })),
       subtotal,
       tax,
@@ -189,7 +191,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
 
     setNewInvoice({
       patientId: "",
-      items: [{ description: "", quantity: 1, unitPrice: 0, category: "Consultation" }],
+      items: [{ description: "", quantity: 1, unitPrice: 0, total: 0, category: "Consultation" as const }],
       discount: 0,
       notes: ""
     });
@@ -333,7 +335,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                       <div className="col-span-1">
                         <Label>Total</Label>
                         <div className="p-2 bg-gray-50 rounded text-sm font-medium">
-                          ${(item.quantity * item.unitPrice).toFixed(2)}
+                          ${item.total.toFixed(2)}
                         </div>
                       </div>
                       <div className="col-span-1">
