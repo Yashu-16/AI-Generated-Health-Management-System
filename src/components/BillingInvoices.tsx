@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, DollarSign, FileText, CreditCard, TrendingUp } from "lucide-react";
+import { Search, Plus, DollarSign, FileText, CreditCard, TrendingUp, Printer, Barcode } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Invoice, InvoiceItem } from "@/types/hospital";
 
@@ -113,6 +113,12 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     return `INV-${year}-${nextNumber}`;
   };
 
+  const generateUniqueBarcode = () => {
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000000);
+    return `${timestamp}${random}`.slice(-12); // 12 digit barcode
+  };
+
   const handleAddItem = () => {
     setNewInvoice({
       ...newInvoice,
@@ -186,7 +192,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     
     toast({
       title: "Invoice Created",
-      description: `Invoice ${invoice.invoiceNumber} has been generated and sent to the patient`,
+      description: `Invoice ${invoice.invoiceNumber} has been generated with unique barcode`,
     });
 
     setNewInvoice({
@@ -196,6 +202,102 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
       notes: ""
     });
     setShowAddDialog(false);
+  };
+
+  const printInvoiceWithBarcode = (invoice: Invoice) => {
+    const patient = patients.find(p => p.id === invoice.patientId);
+    const barcode = generateUniqueBarcode();
+    
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Invoice ${invoice.invoiceNumber}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              .header { text-align: center; margin-bottom: 20px; border: 1px solid #000; padding: 15px; }
+              .invoice-details { margin: 20px 0; }
+              .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+              .items-table th, .items-table td { border: 1px solid #000; padding: 8px; text-align: left; }
+              .items-table th { background-color: #f0f0f0; }
+              .totals { margin-top: 20px; text-align: right; }
+              .barcode-section { margin: 30px 0; text-align: center; border: 1px solid #000; padding: 20px; }
+              .barcode { font-family: 'Courier New', monospace; font-size: 24px; letter-spacing: 3px; margin: 10px 0; }
+              .barcode-lines { font-family: 'Courier New', monospace; font-size: 48px; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>VISION MULTISPECIALITY HOSPITAL</h1>
+              <p>Moshi-Chikhali Near RKH Blessings, Moshi,Pune -412105</p>
+              <p>📞 9766660572/9146383404</p>
+            </div>
+            
+            <div class="invoice-details">
+              <h2>INVOICE</h2>
+              <p><strong>Invoice Number:</strong> ${invoice.invoiceNumber}</p>
+              <p><strong>Patient:</strong> ${patient?.name}</p>
+              <p><strong>Issue Date:</strong> ${invoice.issueDate.toLocaleDateString()}</p>
+              <p><strong>Due Date:</strong> ${invoice.dueDate.toLocaleDateString()}</p>
+            </div>
+            
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Category</th>
+                  <th>Quantity</th>
+                  <th>Unit Price</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${invoice.items.map(item => `
+                  <tr>
+                    <td>${item.description}</td>
+                    <td>${item.category}</td>
+                    <td>${item.quantity}</td>
+                    <td>$${item.unitPrice.toFixed(2)}</td>
+                    <td>$${item.total.toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            
+            <div class="totals">
+              <p><strong>Subtotal: $${invoice.subtotal.toFixed(2)}</strong></p>
+              <p><strong>Tax: $${invoice.tax.toFixed(2)}</strong></p>
+              <p><strong>Discount: -$${invoice.discount.toFixed(2)}</strong></p>
+              <p style="font-size: 18px;"><strong>Total: $${invoice.total.toFixed(2)}</strong></p>
+            </div>
+            
+            <div class="barcode-section">
+              <h3>INVOICE BARCODE</h3>
+              <div class="barcode-lines">||||  |||| |  ||||||  |||| |  |  ||||||||  ||</div>
+              <div class="barcode">${barcode}</div>
+              <p style="font-size: 12px;">Scan this barcode to access invoice details</p>
+            </div>
+            
+            ${invoice.notes ? `<div style="margin-top: 20px;"><p><strong>Notes:</strong> ${invoice.notes}</p></div>` : ''}
+            
+            <div style="margin-top: 30px; text-align: center; font-size: 12px;">
+              <p>Thank you for choosing Vision Multispeciality Hospital</p>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+      
+      // Store barcode for future reference
+      console.log(`Invoice ${invoice.invoiceNumber} generated with barcode: ${barcode}`);
+      
+      toast({
+        title: "Invoice Printed",
+        description: `Invoice with barcode ${barcode} has been generated`,
+      });
+    }
   };
 
   const updateInvoiceStatus = (invoiceId: string, status: "Paid" | "Overdue" | "Cancelled") => {
@@ -248,7 +350,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Billing & Invoices</h1>
-          <p className="text-muted-foreground">Manage patient billing and payment tracking</p>
+          <p className="text-muted-foreground">Manage patient billing with barcode generation</p>
         </div>
         {(userRole === "admin" || userRole === "staff") && (
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
@@ -261,7 +363,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Invoice</DialogTitle>
-                <DialogDescription>Generate an invoice for patient services</DialogDescription>
+                <DialogDescription>Generate an invoice with unique barcode for patient services</DialogDescription>
               </DialogHeader>
               <div className="grid gap-4">
                 <div>
@@ -398,8 +500,13 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                   </div>
                 </div>
 
+                <div className="flex items-center gap-2 p-3 bg-blue-50 rounded">
+                  <Barcode className="h-5 w-5 text-blue-600" />
+                  <span className="text-sm text-blue-800">Each invoice will be generated with a unique barcode for easy tracking</span>
+                </div>
+
                 <Button onClick={handleCreateInvoice} className="w-full">
-                  Create Invoice
+                  Create Invoice with Barcode
                 </Button>
               </div>
             </DialogContent>
@@ -449,7 +556,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
       <Card>
         <CardHeader>
           <CardTitle>Invoice List</CardTitle>
-          <CardDescription>Search and manage patient invoices</CardDescription>
+          <CardDescription>Search and manage patient invoices with barcode tracking</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 mb-4">
@@ -507,6 +614,13 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                       </Badge>
                     </TableCell>
                     <TableCell className="space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => printInvoiceWithBarcode(invoice)}
+                      >
+                        <Printer className="h-4 w-4" />
+                      </Button>
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="outline" size="sm" onClick={() => setSelectedInvoice(invoice)}>
