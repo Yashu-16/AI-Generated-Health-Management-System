@@ -9,9 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useHospitalStats } from "@/hooks/useHospitalStats";
 import PatientManagement from "@/components/PatientManagement";
 import DoctorManagement from "@/components/DoctorManagement";
-import AppointmentScheduling from "@/components/AppointmentScheduling";
-import MedicalRecords from "@/components/MedicalRecords";
-import RoomManagement from "@/components/RoomManagement";
+import FaceSheet from "@/components/FaceSheet";
 import BillingInvoices from "@/components/BillingInvoices";
 import ReportTab from "@/components/ReportTab";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,147 +68,153 @@ const Index = () => {
       </div>
 
       <div className="p-6">
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Total Patients</CardTitle>
-              <CardDescription>All registered patients</CardDescription>
-            </CardHeader>
-            <CardContent className="flex items-center space-x-4">
-              <Users className="h-9 w-9 text-gray-500" />
-              <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.totalPatients}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Active Doctors</CardTitle>
-              <CardDescription>Currently working doctors</CardDescription>
-            </CardHeader>
-            <CardContent className="flex items-center space-x-4">
-              <UserCheck className="h-9 w-9 text-green-500" />
-              <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.activeStaff}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Available Rooms</CardTitle>
-              <CardDescription>Rooms ready for occupancy</CardDescription>
-            </CardHeader>
-            <CardContent className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Bed className="h-9 w-9 text-blue-500" />
-                <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.availableBeds}</div>
-              </div>
-              <Button
-                onClick={() => navigate("/billing/create")}
-                className="bg-blue-600 hover:bg-blue-700"
-                size="sm"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Create Invoice
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming Appointments</CardTitle>
-              <CardDescription>Scheduled appointments today</CardDescription>
-            </CardHeader>
-            <CardContent className="flex items-center space-x-4">
-              <CalendarDays className="h-9 w-9 text-orange-500" />
-              <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.todaysAppointments}</div>
-            </CardContent>
-          </Card>
-        </div>
-
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="patients">Patients</TabsTrigger>
             <TabsTrigger value="doctors">Doctors</TabsTrigger>
+            <TabsTrigger value="facesheet">Face Sheet</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
             <TabsTrigger value="reports">Reports</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <LayoutDashboard className="h-5 w-5" />
-                  <span>Hospital Dashboard</span>
-                </CardTitle>
-                <CardDescription>Overview of hospital operations and key metrics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Quick Stats</h3>
-                    <div className="grid gap-3">
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-sm font-medium">Total Patients</span>
-                        <span className="text-lg font-bold text-blue-600">{stats?.totalPatients || 0}</span>
+            <div className="space-y-6">
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Total Patients</CardTitle>
+                    <CardDescription>All registered patients</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex items-center space-x-4">
+                    <Users className="h-9 w-9 text-gray-500" />
+                    <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.totalPatients}</div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Active Doctors</CardTitle>
+                    <CardDescription>Currently working doctors</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex items-center space-x-4">
+                    <UserCheck className="h-9 w-9 text-green-500" />
+                    <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.activeStaff}</div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Available Rooms</CardTitle>
+                    <CardDescription>Rooms ready for occupancy</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <Bed className="h-9 w-9 text-blue-500" />
+                      <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.availableBeds}</div>
+                    </div>
+                    <Button
+                      onClick={() => navigate("/billing/create")}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      size="sm"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create Invoice
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Upcoming Appointments</CardTitle>
+                    <CardDescription>Scheduled appointments today</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex items-center space-x-4">
+                    <CalendarDays className="h-9 w-9 text-orange-500" />
+                    <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.todaysAppointments}</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <LayoutDashboard className="h-5 w-5" />
+                    <span>Hospital Dashboard</span>
+                  </CardTitle>
+                  <CardDescription>Overview of hospital operations and key metrics</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Quick Stats</h3>
+                      <div className="grid gap-3">
+                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-medium">Total Patients</span>
+                          <span className="text-lg font-bold text-blue-600">{stats?.totalPatients || 0}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-medium">Active Staff</span>
+                          <span className="text-lg font-bold text-green-600">{stats?.activeStaff || 0}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-medium">Available Beds</span>
+                          <span className="text-lg font-bold text-orange-600">{stats?.availableBeds || 0}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-medium">Today's Appointments</span>
+                          <span className="text-lg font-bold text-purple-600">{stats?.todaysAppointments || 0}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-sm font-medium">Active Staff</span>
-                        <span className="text-lg font-bold text-green-600">{stats?.activeStaff || 0}</span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-sm font-medium">Available Beds</span>
-                        <span className="text-lg font-bold text-orange-600">{stats?.availableBeds || 0}</span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <span className="text-sm font-medium">Today's Appointments</span>
-                        <span className="text-lg font-bold text-purple-600">{stats?.todaysAppointments || 0}</span>
+                    </div>
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Quick Actions</h3>
+                      <div className="grid gap-3">
+                        <Button 
+                          onClick={() => navigate("/billing/create")} 
+                          className="justify-start h-12"
+                          variant="outline"
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Create New Invoice
+                        </Button>
+                        <Button 
+                          className="justify-start h-12" 
+                          variant="outline"
+                          onClick={() => {
+                            const patientsTab = document.querySelector('[value="patients"]') as HTMLElement;
+                            patientsTab?.click();
+                          }}
+                        >
+                          <Users className="mr-2 h-4 w-4" />
+                          Manage Patients
+                        </Button>
+                        <Button 
+                          className="justify-start h-12" 
+                          variant="outline"
+                          onClick={() => {
+                            const doctorsTab = document.querySelector('[value="doctors"]') as HTMLElement;
+                            doctorsTab?.click();
+                          }}
+                        >
+                          <UserCheck className="mr-2 h-4 w-4" />
+                          Manage Doctors
+                        </Button>
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Quick Actions</h3>
-                    <div className="grid gap-3">
-                      <Button 
-                        onClick={() => navigate("/billing/create")} 
-                        className="justify-start h-12"
-                        variant="outline"
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create New Invoice
-                      </Button>
-                      <Button 
-                        className="justify-start h-12" 
-                        variant="outline"
-                        onClick={() => {
-                          const patientsTab = document.querySelector('[value="patients"]') as HTMLElement;
-                          patientsTab?.click();
-                        }}
-                      >
-                        <Users className="mr-2 h-4 w-4" />
-                        Manage Patients
-                      </Button>
-                      <Button 
-                        className="justify-start h-12" 
-                        variant="outline"
-                        onClick={() => {
-                          const doctorsTab = document.querySelector('[value="doctors"]') as HTMLElement;
-                          doctorsTab?.click();
-                        }}
-                      >
-                        <UserCheck className="mr-2 h-4 w-4" />
-                        Manage Doctors
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
           <TabsContent value="patients">
             <PatientManagement userRole={userRole} />
           </TabsContent>
           <TabsContent value="doctors">
             <DoctorManagement userRole={userRole} />
+          </TabsContent>
+          <TabsContent value="facesheet">
+            <FaceSheet userRole={userRole} />
           </TabsContent>
           <TabsContent value="billing">
             <BillingInvoices userRole={userRole} />
