@@ -414,22 +414,7 @@ const FaceSheet = ({ userRole }: FaceSheetProps) => {
 
   // Replace handleDeleteFaceSheet with inline logic using Trash icon
   const handleDeleteFaceSheet = async (faceSheetId: string) => {
-    if (!window.confirm("Are you sure you want to delete this face sheet? This cannot be undone.")) return;
-    setFaceSheets(current => current.filter(s => s.id !== faceSheetId));
-    const { error } = await supabase.from("face_sheets").delete().eq("id", faceSheetId);
-    if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
-    } else {
-      toast({
-        title: "Face Sheet Deleted",
-        description: "Face sheet has been deleted.",
-      });
-      // No refetch required since we filter locally above.
-    }
+    // Delete functionality removed. UI does not call this.
   };
 
   const filteredFaceSheets = faceSheets.filter(sheet => 
@@ -748,15 +733,6 @@ const FaceSheet = ({ userRole }: FaceSheetProps) => {
                         )}
                       </DialogContent>
                     </Dialog>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteFaceSheet(faceSheet.id)}
-                      className="border border-[#102042] text-[#102042] hover:bg-[#102042]/10"
-                      title="Delete Face Sheet"
-                    >
-                      <Trash className="h-5 w-5 text-red-600" />
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

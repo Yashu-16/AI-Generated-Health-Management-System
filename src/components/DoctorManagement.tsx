@@ -128,21 +128,7 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
   };
 
   const handleDeleteDoctor = async (doctorId: string) => {
-    if (!window.confirm("Are you sure you want to delete this doctor? This cannot be undone.")) return;
-    try {
-      await updateDoctor.mutateAsync({ ...doctors?.find(d => d.id === doctorId), status: "Inactive", updatedAt: new Date() });
-      toast({
-        title: "Doctor Deleted",
-        description: `Doctor has been marked as inactive.`,
-      });
-      refetch();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
+    // Removed delete functionality; function kept for reference
   };
 
   const filteredDoctors = doctorsList.filter(doctor => {
@@ -561,14 +547,6 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
                       onClick={() => handleEditClick(doctor)}
                     >
                       <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleDeleteDoctor(doctor.id)}
-                      title="Delete Doctor"
-                    >
-                      <Trash className="h-5 w-5 text-red-600" />
                     </Button>
                   </TableCell>
                 </TableRow>

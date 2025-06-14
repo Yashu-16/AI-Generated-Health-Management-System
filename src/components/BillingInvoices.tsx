@@ -104,8 +104,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   };
 
   const handleDeleteInvoice = async (invoiceId: string) => {
-    // Implement your delete logic here
-    console.log("Deleting invoice with ID:", invoiceId);
+    // Delete button removed; logic not used.
   };
 
   const filteredInvoices = (invoices ?? []).filter(invoice => {
@@ -311,14 +310,6 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                   <TableCell className="space-x-2">
                     <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
                       <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteInvoice(invoice.id)}
-                      title="Delete Invoice"
-                    >
-                      <Trash className="h-5 w-5 text-red-600" />
                     </Button>
                   </TableCell>
                 </TableRow>
