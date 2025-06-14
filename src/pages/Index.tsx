@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,29 +27,8 @@ const Index = () => {
     const getUserRole = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Fetch the user's role from the 'profiles' table
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single(); // Assuming 'id' is the user ID column in your 'profiles' table
-
-        if (profileError) {
-          console.error("Error fetching user role:", profileError);
-          toast({
-            title: "Error fetching user role",
-            description: "Failed to determine your role. Please try again.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        if (profileData && profileData.role) {
-          setUserRole(profileData.role);
-        } else {
-          console.warn("User role not found in profile, defaulting to 'staff'");
-          setUserRole("staff"); // Default role if not found
-        }
+        // For now, default to admin since profiles table doesn't exist
+        setUserRole("admin");
       }
     };
 
@@ -82,13 +62,6 @@ const Index = () => {
             </Badge>
           </div>
           <div className="flex items-center space-x-4">
-            <Button
-              onClick={() => navigate("/billing/create")}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Create Invoice
-            </Button>
             <Button variant="outline" onClick={handleSignOut}>
               Sign Out
             </Button>
@@ -116,7 +89,7 @@ const Index = () => {
             </CardHeader>
             <CardContent className="flex items-center space-x-4">
               <UserCheck className="h-9 w-9 text-green-500" />
-              <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.activeDoctors}</div>
+              <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.activeStaff}</div>
             </CardContent>
           </Card>
 
@@ -125,9 +98,19 @@ const Index = () => {
               <CardTitle>Available Rooms</CardTitle>
               <CardDescription>Rooms ready for occupancy</CardDescription>
             </CardHeader>
-            <CardContent className="flex items-center space-x-4">
-              <Bed className="h-9 w-9 text-blue-500" />
-              <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.availableRooms}</div>
+            <CardContent className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Bed className="h-9 w-9 text-blue-500" />
+                <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.availableBeds}</div>
+              </div>
+              <Button
+                onClick={() => navigate("/billing/create")}
+                className="bg-blue-600 hover:bg-blue-700"
+                size="sm"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Create Invoice
+              </Button>
             </CardContent>
           </Card>
 
@@ -138,7 +121,7 @@ const Index = () => {
             </CardHeader>
             <CardContent className="flex items-center space-x-4">
               <CalendarDays className="h-9 w-9 text-orange-500" />
-              <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.upcomingAppointments}</div>
+              <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.todaysAppointments}</div>
             </CardContent>
           </Card>
         </div>
@@ -155,19 +138,19 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="patients">
-            <PatientManagement />
+            <PatientManagement userRole={userRole} />
           </TabsContent>
           <TabsContent value="doctors">
-            <DoctorManagement />
+            <DoctorManagement userRole={userRole} />
           </TabsContent>
           <TabsContent value="appointments">
-            <AppointmentScheduling />
+            <AppointmentScheduling userRole={userRole} />
           </TabsContent>
           <TabsContent value="medical-records">
-            <MedicalRecords />
+            <MedicalRecords userRole={userRole} />
           </TabsContent>
           <TabsContent value="rooms">
-            <RoomManagement />
+            <RoomManagement userRole={userRole} />
           </TabsContent>
           <TabsContent value="billing">
             <BillingInvoices userRole={userRole} />
