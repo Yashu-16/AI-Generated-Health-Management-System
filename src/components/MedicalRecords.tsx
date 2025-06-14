@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Plus, FileText, Activity, TestTube } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { MedicalRecord, Medication, LabResult } from "@/types/hospital";
+import { MedicalRecord, Medication, LabResult, Patient } from "@/types/hospital";
 import { supabase } from "@/integrations/supabase/client";
 
 interface MedicalRecordsProps {
@@ -27,6 +27,7 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
+  const [faceSheetPatient, setFaceSheetPatient] = useState<Patient | null>(null);
   const { toast } = useToast();
 
   const [newRecord, setNewRecord] = useState({
@@ -47,11 +48,13 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
   useEffect(() => {
     const fetchMeta = async () => {
       const [{ data: patientData }, { data: doctorData }] = await Promise.all([
-        supabase.from("patients").select("id, full_name"),
+        supabase.from("patients").select("id, full_name, age, gender, phone, email, address, emergency_contact, emergency_phone, blood_type, allergies, admission_date, discharge_date, status, assigned_doctor_id, assigned_room_id, insurance_info, medical_history, current_diagnosis, created_at, updated_at"),
         supabase.from("doctors").select("id, full_name"),
       ]);
-      if (patientData) setPatients(patientData.map((p: any) => ({ id: p.id, name: p.full_name })));
+      if (patientData) setPatients(patientData.map((p: any) => ({ id: p.id, name: p.full_name, faceSheet: p })));
+      else setPatients([]);
       if (doctorData) setDoctors(doctorData.map((d: any) => ({ id: d.id, name: d.full_name })));
+      else setDoctors([]);
     };
     fetchMeta();
   }, []);
@@ -85,6 +88,7 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
       followUpDate: rec.follow_up_date ? new Date(rec.follow_up_date) : undefined,
       createdAt: rec.created_at ? new Date(rec.created_at) : new Date(),
       updatedAt: rec.updated_at ? new Date(rec.updated_at) : new Date(),
+      faceSheetSnapshot: rec.face_sheet_snapshot ?? null,
     }));
     setMedicalRecords(mapped);
     setLoading(false);
@@ -94,6 +98,31 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
     fetchMedicalRecords();
   }, []);
 
+  // Helper to get full patient face sheet data by id
+  const getFaceSheetData = (patientId: string) => {
+    const patient = patients.find(p => p.id === patientId && p.faceSheet);
+    return patient ? patient.faceSheet : null;
+  };
+
+  const displayFaceSheet = (snapshot: any) => {
+    if (!snapshot) return <div className="text-muted-foreground text-sm">No face sheet snapshot saved.</div>;
+    // Display important fields from snapshot; adjust as needed.
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div><span className="font-semibold">Full Name:</span> {snapshot.full_name}</div>
+        <div><span className="font-semibold">Age:</span> {snapshot.age}</div>
+        <div><span className="font-semibold">Gender:</span> {snapshot.gender}</div>
+        <div><span className="font-semibold">Phone:</span> {snapshot.phone}</div>
+        <div><span className="font-semibold">Address:</span> {snapshot.address}</div>
+        <div><span className="font-semibold">Blood Type:</span> {snapshot.blood_type}</div>
+        <div><span className="font-semibold">Allergies:</span> {Array.isArray(snapshot.allergies) ? snapshot.allergies.join(", ") : ""}</div>
+        <div><span className="font-semibold">Admission Date:</span> {snapshot.admission_date}</div>
+        <div><span className="font-semibold">Status:</span> {snapshot.status}</div>
+        {/* Add other fields as needed */}
+      </div>
+    );
+  };
+
   const handleAddRecord = async () => {
     if (!newRecord.patientId || !newRecord.doctorId || !newRecord.chiefComplaint) {
       toast({
@@ -102,6 +131,13 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
         variant: "destructive"
       });
       return;
+    }
+
+    // Get the patient face sheet data for snapshot
+    let faceSheetSnapshot = null;
+    const res = await supabase.from("patients").select("*").eq("id", newRecord.patientId).maybeSingle();
+    if (res.data) {
+      faceSheetSnapshot = res.data;
     }
 
     const insertData = {
@@ -122,7 +158,8 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
       lab_results: [],
       notes: newRecord.notes,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      face_sheet_snapshot: faceSheetSnapshot,
     };
 
     const { error } = await supabase.from("medical_records").insert([insertData]);
@@ -413,8 +450,9 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
                           </DialogHeader>
                           {selectedRecord && (
                             <Tabs defaultValue="overview" className="w-full">
-                              <TabsList className="grid w-full grid-cols-4">
+                              <TabsList className="grid w-full grid-cols-5">
                                 <TabsTrigger value="overview">Overview</TabsTrigger>
+                                <TabsTrigger value="face-sheet">Face Sheet</TabsTrigger>
                                 <TabsTrigger value="vitals">Vital Signs</TabsTrigger>
                                 <TabsTrigger value="medications">Medications</TabsTrigger>
                                 <TabsTrigger value="labs">Lab Results</TabsTrigger>
@@ -439,6 +477,11 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
                                     <p className="text-sm text-muted-foreground mt-1">{selectedRecord.notes}</p>
                                   </div>
                                 </div>
+                              </TabsContent>
+                              
+                              <TabsContent value="face-sheet" className="space-y-4">
+                                <h3 className="font-semibold">Face Sheet Snapshot (At Visit Time)</h3>
+                                {displayFaceSheet(selectedRecord.faceSheetSnapshot)}
                               </TabsContent>
                               
                               <TabsContent value="vitals" className="space-y-4">

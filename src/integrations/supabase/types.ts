@@ -201,6 +201,7 @@ export type Database = {
           created_at: string | null
           diagnosis: string | null
           doctor_id: string | null
+          face_sheet_snapshot: Json | null
           follow_up_date: string | null
           id: string
           lab_results: Json | null
@@ -217,6 +218,7 @@ export type Database = {
           created_at?: string | null
           diagnosis?: string | null
           doctor_id?: string | null
+          face_sheet_snapshot?: Json | null
           follow_up_date?: string | null
           id?: string
           lab_results?: Json | null
@@ -233,6 +235,7 @@ export type Database = {
           created_at?: string | null
           diagnosis?: string | null
           doctor_id?: string | null
+          face_sheet_snapshot?: Json | null
           follow_up_date?: string | null
           id?: string
           lab_results?: Json | null
