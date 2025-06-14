@@ -88,20 +88,20 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
         {/* Hospital Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className="bg-blue-600 p-3 rounded-full mr-4">
-              <Stethoscope className="h-8 w-8 text-white" />
+            <div className="bg-primary p-3 rounded-full mr-4">
+              <Stethoscope className="h-8 w-8 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-blue-800">VISION MULTISPECIALITY HOSPITAL</h1>
-              <p className="text-blue-600 font-medium">Healthcare Management System</p>
+              <h1 className="text-4xl font-bold text-primary">VISION MULTISPECIALITY HOSPITAL</h1>
+              <p className="text-muted-foreground font-medium">Healthcare Management System</p>
             </div>
           </div>
-          <div className="flex items-center justify-center space-x-6 text-blue-700">
+          <div className="flex items-center justify-center space-x-6 text-muted-foreground">
             <div className="flex items-center">
               <Heart className="h-5 w-5 mr-2" />
               <span>Comprehensive Care</span>
@@ -115,10 +115,10 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* Auth Form */}
-          <Card className="shadow-xl border-blue-200">
-            <CardHeader className="bg-blue-600 text-white rounded-t-lg">
+          <Card className="shadow-xl">
+            <CardHeader className="bg-primary text-primary-foreground rounded-t-lg">
               <CardTitle className="text-2xl text-center">Access Portal</CardTitle>
-              <CardDescription className="text-blue-100 text-center">
+              <CardDescription className="text-primary-foreground/80 text-center">
                 Sign in to manage hospital operations
               </CardDescription>
             </CardHeader>
@@ -138,7 +138,6 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
                       value={loginData.email}
                       onChange={(e) => setLoginData({...loginData, email: e.target.value})}
                       placeholder="Enter your email"
-                      className="border-blue-200 focus:border-blue-500"
                     />
                   </div>
                   <div>
@@ -149,12 +148,11 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
                       value={loginData.password}
                       onChange={(e) => setLoginData({...loginData, password: e.target.value})}
                       placeholder="Enter your password"
-                      className="border-blue-200 focus:border-blue-500"
                     />
                   </div>
                   <Button 
                     onClick={handleLogin} 
-                    className="w-full bg-blue-600 hover:bg-blue-700" 
+                    className="w-full" 
                     disabled={isLoading}
                   >
                     {isLoading ? "Signing In..." : "Sign In"}
@@ -169,7 +167,6 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
                       value={signupData.fullName}
                       onChange={(e) => setSignupData({...signupData, fullName: e.target.value})}
                       placeholder="Enter full name"
-                      className="border-blue-200 focus:border-blue-500"
                     />
                   </div>
                   <div>
@@ -180,7 +177,6 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
                       value={signupData.email}
                       onChange={(e) => setSignupData({...signupData, email: e.target.value})}
                       placeholder="Enter email"
-                      className="border-blue-200 focus:border-blue-500"
                     />
                   </div>
                   <div>
@@ -191,7 +187,6 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
                       value={signupData.password}
                       onChange={(e) => setSignupData({...signupData, password: e.target.value})}
                       placeholder="Create password"
-                      className="border-blue-200 focus:border-blue-500"
                     />
                   </div>
                   <div>
@@ -202,12 +197,11 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
                       value={signupData.confirmPassword}
                       onChange={(e) => setSignupData({...signupData, confirmPassword: e.target.value})}
                       placeholder="Confirm password"
-                      className="border-blue-200 focus:border-blue-500"
                     />
                   </div>
                   <Button 
                     onClick={handleSignup} 
-                    className="w-full bg-blue-600 hover:bg-blue-700" 
+                    className="w-full" 
                     disabled={isLoading}
                   >
                     {isLoading ? "Creating Account..." : "Create Account"}
@@ -218,24 +212,23 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
           </Card>
 
           {/* Demo Credentials */}
-          <Card className="shadow-xl border-blue-200">
-            <CardHeader className="bg-blue-100">
-              <CardTitle className="text-blue-800">Demo Credentials</CardTitle>
-              <CardDescription className="text-blue-600">
+          <Card className="shadow-xl">
+            <CardHeader className="bg-muted">
+              <CardTitle>Demo Credentials</CardTitle>
+              <CardDescription>
                 Use these credentials to test different user roles
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               <div className="space-y-4">
                 {demoCredentials.map((cred, index) => (
-                  <div key={index} className="border border-blue-200 rounded-lg p-4 hover:bg-blue-50 transition-colors">
+                  <div key={index} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                     <div className="flex justify-between items-center mb-2">
-                      <h3 className="font-semibold text-blue-800">{cred.role}</h3>
+                      <h3 className="font-semibold">{cred.role}</h3>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => fillDemoCredentials(cred.email, cred.password)}
-                        className="border-blue-300 text-blue-600 hover:bg-blue-50"
                       >
                         Use
                       </Button>
@@ -246,9 +239,9 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
                 ))}
               </div>
               
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-semibold text-blue-800 mb-2">Role Permissions:</h4>
-                <ul className="text-sm text-blue-700 space-y-1">
+              <div className="mt-6 p-4 bg-muted rounded-lg">
+                <h4 className="font-semibold mb-2">Role Permissions:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
                   <li><strong>Admin:</strong> Full access to all features</li>
                   <li><strong>Doctor:</strong> Medical records, appointments</li>
                   <li><strong>Staff:</strong> Patient management, billing</li>
