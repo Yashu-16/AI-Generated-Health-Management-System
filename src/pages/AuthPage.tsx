@@ -95,10 +95,11 @@ const AuthPage = () => {
             </div>
             <div>
               <h1 className="text-4xl font-bold text-primary">VISION MULTISPECIALITY HOSPITAL</h1>
-              <p className="text-muted-foreground font-medium">Healthcare Management System</p>
+              {/* Update to use consistent muted style */}
+              <p className="text-foreground font-medium">Healthcare Management System</p>
             </div>
           </div>
-          <div className="flex items-center justify-center space-x-6 text-muted-foreground">
+          <div className="flex items-center justify-center space-x-6 text-foreground">
             <div className="flex items-center">
               <Heart className="h-5 w-5 mr-2" />
               <span>Comprehensive Care</span>
@@ -128,7 +129,7 @@ const AuthPage = () => {
 
                 <TabsContent value="login" className="space-y-4">
                   <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email" className="text-foreground">Email</Label>
                     <Input
                       id="email"
                       type="email"
@@ -138,7 +139,7 @@ const AuthPage = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password" className="text-foreground">Password</Label>
                     <Input
                       id="password"
                       type="password"
@@ -158,7 +159,7 @@ const AuthPage = () => {
 
                 <TabsContent value="signup" className="space-y-4">
                   <div>
-                    <Label htmlFor="signupEmail">Email</Label>
+                    <Label htmlFor="signupEmail" className="text-foreground">Email</Label>
                     <Input
                       id="signupEmail"
                       type="email"
@@ -168,7 +169,7 @@ const AuthPage = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="signupPassword">Password</Label>
+                    <Label htmlFor="signupPassword" className="text-foreground">Password</Label>
                     <Input
                       id="signupPassword"
                       type="password"
@@ -178,7 +179,7 @@ const AuthPage = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Label htmlFor="confirmPassword" className="text-foreground">Confirm Password</Label>
                     <Input
                       id="confirmPassword"
                       type="password"
