@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, Edit, FileText, Printer, Download, Trash } from "lucide-react";
+import { Search, Plus, Edit, FileText, Printer } from "lucide-react"; // Only import used icons
 import { useToast } from "@/hooks/use-toast";
 import { Invoice } from "@/types/hospital";
 import { useInvoices } from "@/hooks/useInvoices";
@@ -25,6 +26,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [showViewDialog, setShowViewDialog] = useState(false);
   const { toast } = useToast();
 
   const { invoices, isLoading, error, addInvoice, updateInvoice, refetch } = useInvoices();
@@ -103,8 +105,86 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     }
   };
 
-  const handleDeleteInvoice = async (invoiceId: string) => {
-    // Delete button removed; logic not used.
+  const handleViewInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setShowViewDialog(true);
+  };
+
+  const handlePrintInvoice = (invoice: Invoice) => {
+    // Open printable window with invoice details for print
+    // We'll use a simple popup method here
+    const printWindow = window.open("", "_blank", "width=800,height=600");
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Print Invoice - ${invoice.invoiceNumber}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 24px; }
+            h2 { margin-bottom: 8px; }
+            table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+            th, td { border: 1px solid #ddd; padding: 8px; }
+            th { background: #f3f3f3; }
+            .total-label { font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <h2>Invoice #${invoice.invoiceNumber}</h2>
+          <p><b>Patient ID:</b> ${invoice.patientId}</p>
+          <p><b>Issue Date:</b> ${invoice.issueDate.toLocaleDateString()}</p>
+          <p><b>Due Date:</b> ${invoice.dueDate.toLocaleDateString()}</p>
+          <hr/>
+          <table>
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${invoice.items?.map(
+                (item: any) =>
+                  `<tr>
+                    <td>${item.description}</td>
+                    <td>${item.category ?? ""}</td>
+                    <td>${item.quantity}</td>
+                    <td>₹${item.unitPrice}</td>
+                    <td>₹${item.total}</td>
+                  </tr>`
+              ).join("")}
+              <tr>
+                <td colspan="4" class="total-label">Subtotal</td>
+                <td>₹${invoice.subtotal}</td>
+              </tr>
+              <tr>
+                <td colspan="4" class="total-label">Tax</td>
+                <td>₹${invoice.tax}</td>
+              </tr>
+              <tr>
+                <td colspan="4" class="total-label">Discount</td>
+                <td>₹${invoice.discount}</td>
+              </tr>
+              <tr>
+                <td colspan="4" class="total-label">Total</td>
+                <td>₹${invoice.total}</td>
+              </tr>
+            </tbody>
+          </table>
+          <br/>
+          <p><b>Status:</b> ${invoice.status}</p>
+          ${invoice.notes ? `<p><b>Notes:</b> ${invoice.notes}</p>` : ""}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 400);
   };
 
   const filteredInvoices = (invoices ?? []).filter(invoice => {
@@ -247,6 +327,76 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
         </DialogContent>
       </Dialog>
 
+      {/* View Invoice Dialog */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Invoice Details</DialogTitle>
+            <DialogDescription>Full invoice information shown below</DialogDescription>
+          </DialogHeader>
+          {selectedInvoice && (
+            <div>
+              <div className="mb-2 flex flex-col gap-1">
+                <div><b>Invoice Number:</b> {selectedInvoice.invoiceNumber}</div>
+                <div><b>Patient ID:</b> {selectedInvoice.patientId}</div>
+                <div><b>Issue Date:</b> {selectedInvoice.issueDate.toLocaleDateString()}</div>
+                <div><b>Due Date:</b> {selectedInvoice.dueDate.toLocaleDateString()}</div>
+              </div>
+              <table className="w-full border mt-3">
+                <thead>
+                  <tr>
+                    <th className="border p-2">Description</th>
+                    <th className="border p-2">Category</th>
+                    <th className="border p-2">Qty</th>
+                    <th className="border p-2">Unit Price</th>
+                    <th className="border p-2">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedInvoice.items.map((item, idx) => (
+                    <tr key={idx}>
+                      <td className="border p-2">{item.description}</td>
+                      <td className="border p-2">{item.category}</td>
+                      <td className="border p-2 text-center">{item.quantity}</td>
+                      <td className="border p-2 text-right">₹{item.unitPrice}</td>
+                      <td className="border p-2 text-right">₹{item.total}</td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <td colSpan={4} className="border p-2 text-right font-bold">Subtotal</td>
+                    <td className="border p-2 text-right">₹{selectedInvoice.subtotal}</td>
+                  </tr>
+                  <tr>
+                    <td colSpan={4} className="border p-2 text-right font-bold">Tax</td>
+                    <td className="border p-2 text-right">₹{selectedInvoice.tax}</td>
+                  </tr>
+                  <tr>
+                    <td colSpan={4} className="border p-2 text-right font-bold">Discount</td>
+                    <td className="border p-2 text-right">₹{selectedInvoice.discount}</td>
+                  </tr>
+                  <tr>
+                    <td colSpan={4} className="border p-2 text-right font-bold">Total</td>
+                    <td className="border p-2 text-right">₹{selectedInvoice.total}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div className="mt-3 flex gap-2 flex-wrap">
+                <Badge className={getStatusColor(selectedInvoice.status)}>{selectedInvoice.status}</Badge>
+                {selectedInvoice.paymentMethod && <span><b>Payment Method:</b> {selectedInvoice.paymentMethod}</span>}
+                {selectedInvoice.paymentDate && (
+                  <span><b>Payment Date:</b> {selectedInvoice.paymentDate.toLocaleDateString()}</span>
+                )}
+              </div>
+              {selectedInvoice.notes && (
+                <div className="mt-2">
+                  <b>Notes:</b> {selectedInvoice.notes}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <Card>
         <CardHeader>
           <CardTitle>Invoice List</CardTitle>
@@ -307,9 +457,22 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                       {invoice.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => handleEditInvoice(invoice)}>
-                      <Edit className="h-4 w-4" />
+                  <TableCell className="space-x-2 flex">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      title="View Invoice"
+                      onClick={() => handleViewInvoice(invoice)}
+                    >
+                      <FileText className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      title="Print Invoice"
+                      onClick={() => handlePrintInvoice(invoice)}
+                    >
+                      <Printer className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -323,3 +486,4 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
 };
 
 export default BillingInvoices;
+
