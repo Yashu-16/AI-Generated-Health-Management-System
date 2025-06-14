@@ -110,7 +110,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   };
 
   const handlePrintInvoice = (invoice: Invoice) => {
-    // Professional hospital invoice draft styling with header and details
+    // Enhanced: Hospital header per provided sample, rest as before
     const printWindow = window.open("", "_blank", "width=800,height=1040");
     if (!printWindow) return;
 
@@ -121,20 +121,21 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
           <style>
             body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; background: #f7f7f7; }
             .invoice-box { background: #fff; padding: 40px 32px; max-width: 750px; margin: 0 auto; border-radius: 8px; box-shadow: 0 2px 16px rgba(36,37,38,0.11); }
-            .header { display: flex; flex-direction: row; align-items: flex-start; justify-content: space-between; }
-            .logo { font-weight: bold; font-size: 2rem; color: #222; letter-spacing: 2px; }
-            .hospital-details { margin-top: 8px; letter-spacing: 0.5px; color: #333; font-size: 1rem; }
-            .mt-1 { margin-top: 8px; }
-            .hr { border: none; border-top: 1px solid #ececec; margin: 16px 0; }
-            .details { margin-bottom: 18px; font-size: 1rem; color: #1a1a1a; }
-            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem 2rem; }
+            .header-custom { border: 1px solid #222; border-radius: 2px; margin-bottom: 26px; padding: 16px 12px 10px 12px; text-align: center; }
+            .header-custom .name { font-weight: bold; font-size: 1.3rem; color: #111843; letter-spacing: 1px; margin-bottom: 4px; }
+            .header-custom .address { color: #08203a; font-size: 1rem; line-height: 1.3; }
+            .header-custom .phones { color: #d12857; font-size: 1rem; margin-top: 3px;}
+            .header-custom .phone-icon { color: #d12857; margin-right: 2px; position: relative; top: 2px;}
+            .invoice-title { font-size:1.25rem;font-weight:bold;color:#185ea6;margin-bottom:8px;text-align:right;}
+            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem 2rem; font-size:1rem;}
             .label { font-weight: 500; margin-right: 0.5rem; color: #666; }
             .value { font-weight: 500; color: #191919; }
-            .items-table { width: 100%; border-collapse: collapse; margin-top: 22px; font-size: 1rem; }
+            .hr { border: none; border-top: 1px solid #ececec; margin: 18px 0 8px 0; }
+            .items-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 1rem; }
             .items-table th, .items-table td { border: 1px solid #eee; padding: 8px 10px; text-align: left; }
             .items-table th { background: #f1f5fb; color: #39548a; font-weight: 700; }
             .items-table tr:last-child td { border-bottom: 2px solid #ccc; }
-            .summary-table { margin-top: 16px; width: 60%; float: right; border-collapse: collapse; }
+            .summary-table { margin-top: 18px; width: 60%; float: right; border-collapse: collapse; }
             .summary-table td { padding: 7px 12px; }
             .summary-label { text-align: right; color: #666; }
             .summary-value { font-weight: 600; }
@@ -144,28 +145,19 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             .status-paid { background: #e2fced; color: #09817c; }
             .status-overdue { background: #fde2e1; color: #a94442; }
             .status-cancelled { background: #f0f0f0; color: #636363; }
-            .notes-box { background: #fafbfc; border: 1px solid #e7edf3; padding: 13px 16px; border-radius: 5px; margin-top: 22px; color: #2d3948; }
+            .notes-box { background: #fafbfc; border: 1px solid #e7edf3; padding: 13px 16px; border-radius: 5px; margin-top: 20px; color: #2d3948; }
             @media print { body { background: #fff; } .invoice-box { box-shadow: none !important; } }
           </style>
         </head>
         <body>
           <div class="invoice-box">
-            <div class="header">
-              <div>
-                <div class="logo">MetroHealth Hospital</div>
-                <div class="hospital-details">
-                  123 Main Street, Delhi - 110011 <br/>
-                  Phone: +91 9876543210 <br/>
-                  Email: info@metrohealthhospital.com
-                </div>
-              </div>
-              <div style="text-align:right">
-                <span style="font-size:1.2rem;font-weight:bold;color:#185ea6;">INVOICE</span>
-                <div class="mt-1">#${invoice.invoiceNumber}</div>
-              </div>
+            <div class="header-custom">
+              <div class="name">VISION MULTISPECIALITY HOSPITAL</div>
+              <div class="address">Moshi-Chikhali Near RKH Blessings, Moshi, Pune - 412105</div>
+              <div class="phones"><span class="phone-icon">&#128222;</span> 9766660572 / 9146383404</div>
             </div>
-            <div class="hr"></div>
-            <div class="grid details">
+            <div class="invoice-title">INVOICE <span style="font-size:1rem; font-weight:normal;">#${invoice.invoiceNumber}</span></div>
+            <div class="info-grid">
               <div>
                 <span class="label">Patient ID:</span> <span class="value">${invoice.patientId}</span>
               </div>
@@ -182,6 +174,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                 <span class="label">Payment Date:</span> <span class="value">${invoice.paymentDate ? new Date(invoice.paymentDate).toLocaleDateString() : "-"}</span>
               </div>
             </div>
+            <div class="hr"></div>
             <table class="items-table">
               <thead>
                 <tr>
@@ -236,7 +229,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                 : ""
             }
             <div style="margin-top:30px;font-size:1.1rem;color:#344665;">
-              Thank you for choosing MetroHealth Hospital.
+              Thank you for choosing Vision Multispeciality Hospital.
             </div>
           </div>
           <script>
