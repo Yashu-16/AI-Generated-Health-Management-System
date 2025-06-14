@@ -44,7 +44,55 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
     maxPatientsPerDay: ""
   });
 
-  // Add new doctor - already implemented. (no change)
+  // Add new doctor handler
+  const handleAddDoctor = async () => {
+    // Validation: require full name, specialization, phone
+    if (!newDoctor.fullName || !newDoctor.specialization || !newDoctor.phone) {
+      toast({
+        title: "Missing Fields",
+        description: "Full name, specialization, and phone are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      await addDoctor.mutateAsync({
+        fullName: newDoctor.fullName,
+        specialization: newDoctor.specialization,
+        qualification: newDoctor.qualification,
+        experience: parseInt(newDoctor.experience) || 0,
+        phone: newDoctor.phone,
+        email: newDoctor.email,
+        department: newDoctor.department,
+        consultationFee: parseInt(newDoctor.consultationFee) || 0,
+        maxPatientsPerDay: parseInt(newDoctor.maxPatientsPerDay) || 0,
+        status: "Active",
+        schedule: {}, // new doctor starts with empty schedule
+      });
+      setShowAddDialog(false);
+      setNewDoctor({
+        fullName: "",
+        specialization: "",
+        qualification: "",
+        experience: "",
+        phone: "",
+        email: "",
+        department: "",
+        consultationFee: "",
+        maxPatientsPerDay: "",
+      });
+      toast({
+        title: "Doctor Added",
+        description: "Doctor has been added successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Failed to add doctor",
+        description: error.message || "Something went wrong.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Edit doctor handler — calls updateDoctor mutation
   const handleEditDoctor = async () => {
@@ -310,8 +358,8 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleEditDoctor} className="w-full" disabled={updateDoctor.isLoading}>
-                {updateDoctor.isLoading ? "Updating..." : "Update Doctor"}
+              <Button onClick={handleEditDoctor} className="w-full" disabled={updateDoctor.status === "pending"}>
+                {updateDoctor.status === "pending" ? "Updating..." : "Update Doctor"}
               </Button>
             </div>
           )}
