@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -127,12 +126,9 @@ const Index = () => {
         </div>
 
         <Tabs defaultValue="patients" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="patients">Patients</TabsTrigger>
             <TabsTrigger value="doctors">Doctors</TabsTrigger>
-            <TabsTrigger value="appointments">Appointments</TabsTrigger>
-            <TabsTrigger value="medical-records">Medical Records</TabsTrigger>
-            <TabsTrigger value="rooms">Rooms</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
             <TabsTrigger value="reports">Reports</TabsTrigger>
           </TabsList>
@@ -142,15 +138,6 @@ const Index = () => {
           </TabsContent>
           <TabsContent value="doctors">
             <DoctorManagement userRole={userRole} />
-          </TabsContent>
-          <TabsContent value="appointments">
-            <AppointmentScheduling userRole={userRole} />
-          </TabsContent>
-          <TabsContent value="medical-records">
-            <MedicalRecords userRole={userRole} />
-          </TabsContent>
-          <TabsContent value="rooms">
-            <RoomManagement userRole={userRole} />
           </TabsContent>
           <TabsContent value="billing">
             <BillingInvoices userRole={userRole} />
