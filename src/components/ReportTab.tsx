@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from "react";
 import { format, isSameDay, isSameMonth, isSameYear, getYear, getMonth, startOfDay, parseISO } from "date-fns";
 import { useInvoices } from "@/hooks/useInvoices";
@@ -210,13 +209,8 @@ export default function ReportTab() {
                   onSelect={setSelectedMonth}
                   initialFocus
                   className="p-3 pointer-events-auto"
-                  // Only enable selecting first of month for simple filter
                   fromDate={new Date(2000,0,1)}
                   toDate={new Date()}
-                  displayMonth={
-                    selectedMonth ? selectedMonth : new Date()
-                  }
-                  // User picks a date, we match by month & year below
                 />
               </PopoverContent>
             </Popover>
@@ -238,7 +232,6 @@ export default function ReportTab() {
                   className="p-3 pointer-events-auto"
                   fromDate={new Date(2000,0,1)}
                   toDate={new Date()}
-                  // We only use the year for filtering
                 />
               </PopoverContent>
             </Popover>
