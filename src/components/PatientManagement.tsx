@@ -188,27 +188,23 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
     }
   };
 
-  // Delete patient handler (put status as "Discharged")
+  // Delete patient handler - actually deletes patient from database and updates UI
   const handleDeletePatient = async (patientId: string) => {
     if (!window.confirm("Are you sure you want to delete this patient? This cannot be undone.")) return;
     try {
-      const patient = patients?.find(p => p.id === patientId);
-      if (patient) {
-        await updatePatient.mutateAsync({
-          ...patient,
-          status: "Discharged", // Only allow valid values
-          updatedAt: new Date(),
-        });
-      }
+      // Delete patient from database (using Supabase directly)
+      const { error } = await supabase.from("patients").delete().eq("id", patientId);
+      if (error) throw error;
       toast({
         title: "Patient Deleted",
-        description: `Patient has been marked as discharged.`,
+        description: "Patient record deleted successfully.",
       });
+      // Refetch patient list to update UI (ensure no stale state)
       refetch();
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message ?? "Failed to delete patient",
         variant: "destructive"
       });
     }
