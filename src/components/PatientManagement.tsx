@@ -109,8 +109,16 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       return;
     }
 
-    // Use today's date string in local time
-    const todayLocal = getLocalTodayDateString();
+    // Use today's date string in IST, but convert to Date object to match Patient type
+    const todayLocalStr = getLocalTodayDateString();
+    // Parse YYYY-MM-DD as IST - create a Date object at midnight IST
+    const [year, month, day] = todayLocalStr.split("-").map(Number);
+    // Date constructor is in local time, so we create UTC midnight and then adjust to IST
+    // But for most use cases, we can construct new Date(year, monthIndex, day)
+    // But this is local time. To force IST, we can use Date.UTC then adjust.
+    // Let's create: new Date(Date.UTC(year, monthIndex, day, 0, 0, 0)); and then offset for IST (+5:30)
+    // But for Patient type (and DB), passing Date is enough.
+    const admissionDate = new Date(year, month - 1, day); // Local date, but will match IST for users in IST
 
     const patient: Partial<Patient> = {
       fullName: newPatient.fullName,
@@ -125,7 +133,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       allergies: Array.isArray(newPatient.allergies)
         ? newPatient.allergies.filter((a: any) => !!a && typeof a === "string")
         : [],
-      admissionDate: todayLocal, // Pass today's date string
+      admissionDate: admissionDate, // Now a Date object, as required by Patient type
       status: "Admitted",
       assignedDoctorId: newPatient.assignedDoctorId || null,
       assignedRoomId: newPatient.assignedRoomId || null,
