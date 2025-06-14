@@ -99,25 +99,19 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
       invoiceNumber: generateInvoiceNumber(),
       issueDate: new Date(),
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      items: newInvoice.items.map(item => ({
-        description: item.description,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        total: item.quantity * item.unitPrice,
-        category: item.category
-      })),
+      items: newInvoice.items,
       subtotal,
       tax,
       discount: newInvoice.discount,
       total,
-      status: "Pending",
+      status: "Pending" as "Pending", // Use type literal
       notes: newInvoice.notes,
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
     try {
-      await addInvoice.mutateAsync(invoiceObj);
+      await addInvoice.mutateAsync(invoiceObj as any); // satisfy Omit<Invoice, ...>
       toast({
         title: "Invoice Created",
         description: `Invoice ${invoiceObj.invoiceNumber} created`

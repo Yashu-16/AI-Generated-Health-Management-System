@@ -44,7 +44,7 @@ export function useInvoices() {
         invoice_number: invoice.invoiceNumber,
         issue_date: invoice.issueDate.toISOString().slice(0, 10),
         due_date: invoice.dueDate.toISOString().slice(0, 10),
-        items: invoice.items,
+        items: invoice.items as any, // Cast to any for Supabase jsonb
         subtotal: invoice.subtotal,
         tax: invoice.tax,
         discount: invoice.discount,
@@ -71,7 +71,7 @@ export function useInvoices() {
         invoice_number: invoice.invoiceNumber,
         issue_date: invoice.issueDate.toISOString().slice(0, 10),
         due_date: invoice.dueDate.toISOString().slice(0, 10),
-        items: invoice.items,
+        items: invoice.items as any, // Cast to any for Supabase jsonb
         subtotal: invoice.subtotal,
         tax: invoice.tax,
         discount: invoice.discount,
