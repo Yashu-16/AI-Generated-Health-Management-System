@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -24,9 +23,10 @@ const defaultItem: InvoiceItem = {
 
 // Function to generate auto invoice number
 const generateInvoiceNumber = () => {
-  const timestamp = Date.now();
-  const random = Math.floor(Math.random() * 1000);
-  return `INV-${timestamp}-${random}`;
+  const currentYear = new Date().getFullYear();
+  const random = Math.floor(Math.random() * 999) + 1;
+  const paddedRandom = random.toString().padStart(3, '0');
+  return `INV-${currentYear}-${paddedRandom}`;
 };
 
 export default function InvoiceCreatePage() {
