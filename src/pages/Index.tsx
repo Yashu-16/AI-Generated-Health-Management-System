@@ -1,9 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Users, UserCheck, Bed, FileText, Plus } from "lucide-react";
+import { CalendarDays, Users, UserCheck, Bed, FileText, Plus, LayoutDashboard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useHospitalStats } from "@/hooks/useHospitalStats";
 import PatientManagement from "@/components/PatientManagement";
@@ -125,14 +126,86 @@ const Index = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="patients" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="patients">Patients</TabsTrigger>
             <TabsTrigger value="doctors">Doctors</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
             <TabsTrigger value="reports">Reports</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="dashboard">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <LayoutDashboard className="h-5 w-5" />
+                  <span>Hospital Dashboard</span>
+                </CardTitle>
+                <CardDescription>Overview of hospital operations and key metrics</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Quick Stats</h3>
+                    <div className="grid gap-3">
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-medium">Total Patients</span>
+                        <span className="text-lg font-bold text-blue-600">{stats?.totalPatients || 0}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-medium">Active Staff</span>
+                        <span className="text-lg font-bold text-green-600">{stats?.activeStaff || 0}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-medium">Available Beds</span>
+                        <span className="text-lg font-bold text-orange-600">{stats?.availableBeds || 0}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-medium">Today's Appointments</span>
+                        <span className="text-lg font-bold text-purple-600">{stats?.todaysAppointments || 0}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Quick Actions</h3>
+                    <div className="grid gap-3">
+                      <Button 
+                        onClick={() => navigate("/billing/create")} 
+                        className="justify-start h-12"
+                        variant="outline"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create New Invoice
+                      </Button>
+                      <Button 
+                        className="justify-start h-12" 
+                        variant="outline"
+                        onClick={() => {
+                          const patientsTab = document.querySelector('[value="patients"]') as HTMLElement;
+                          patientsTab?.click();
+                        }}
+                      >
+                        <Users className="mr-2 h-4 w-4" />
+                        Manage Patients
+                      </Button>
+                      <Button 
+                        className="justify-start h-12" 
+                        variant="outline"
+                        onClick={() => {
+                          const doctorsTab = document.querySelector('[value="doctors"]') as HTMLElement;
+                          doctorsTab?.click();
+                        }}
+                      >
+                        <UserCheck className="mr-2 h-4 w-4" />
+                        Manage Doctors
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
           <TabsContent value="patients">
             <PatientManagement userRole={userRole} />
           </TabsContent>
