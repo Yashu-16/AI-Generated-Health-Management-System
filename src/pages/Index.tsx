@@ -19,18 +19,18 @@ const Index = () => {
     window.location.reload();
   };
 
-  // Mock data for dashboard
+  // Updated realistic hospital stats
   const hospitalStats = {
-    totalPatients: 245,
-    admittedPatients: 89,
-    dischargedToday: 12,
-    availableBeds: 156,
-    occupancyRate: 78,
-    todaysAppointments: 34,
-    totalRevenue: 2450000,
-    monthlyRevenue: 12750000,
-    activeStaff: 45,
-    criticalPatients: 3
+    totalPatients: 1247,
+    admittedPatients: 156,
+    dischargedToday: 23,
+    availableBeds: 89,
+    occupancyRate: 82,
+    todaysAppointments: 67,
+    totalRevenue: 185000,
+    monthlyRevenue: 4750000,
+    activeStaff: 124,
+    criticalPatients: 8
   };
 
   return (
@@ -88,20 +88,20 @@ const Index = () => {
                 <CardContent>
                   <div className="text-2xl font-bold">{hospitalStats.totalPatients}</div>
                   <p className="text-xs text-muted-foreground">
-                    +12% from last month
+                    +8% from last month
                   </p>
                 </CardContent>
               </Card>
               
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Admitted Today</CardTitle>
+                  <CardTitle className="text-sm font-medium">Currently Admitted</CardTitle>
                   <UserPlus className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{hospitalStats.admittedPatients}</div>
                   <p className="text-xs text-muted-foreground">
-                    {hospitalStats.dischargedToday} discharged
+                    {hospitalStats.dischargedToday} discharged today
                   </p>
                 </CardContent>
               </Card>
