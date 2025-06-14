@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
 import { supabase } from "@/integrations/supabase/client";
+import InvoiceCreatePage from "@/pages/InvoiceCreatePage";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/billing/create" element={<InvoiceCreatePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
