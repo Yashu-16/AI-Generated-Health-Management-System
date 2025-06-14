@@ -7,12 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Stethoscope, Heart, Shield } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-interface AuthPageProps {
-  onLogin: () => void;
-}
-
-const AuthPage = ({ onLogin }: AuthPageProps) => {
+const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -22,49 +19,39 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
   });
 
   const [signupData, setSignupData] = useState({
-    fullName: "",
     email: "",
     password: "",
-    confirmPassword: "",
-    role: "staff"
+    confirmPassword: ""
   });
 
-  const demoCredentials = [
-    { role: "Admin", email: "admin@visionhospital.com", password: "admin123" },
-    { role: "Doctor", email: "doctor@visionhospital.com", password: "doctor123" },
-    { role: "Staff", email: "staff@visionhospital.com", password: "staff123" }
-  ];
-
-  const handleLogin = () => {
+  // Supabase login function
+  const handleLogin = async () => {
     setIsLoading(true);
-    
-    // Check demo credentials
-    const validCredential = demoCredentials.find(
-      cred => cred.email === loginData.email && cred.password === loginData.password
-    );
+    const { email, password } = loginData;
 
-    setTimeout(() => {
-      if (validCredential) {
-        toast({
-          title: "Login Successful",
-          description: `Welcome back, ${validCredential.role}!`,
-        });
-        onLogin();
-      } else {
-        toast({
-          title: "Invalid Credentials",
-          description: "Please use the demo credentials provided below",
-          variant: "destructive"
-        });
-      }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      toast({
+        title: "Login Failed",
+        description: error.message ?? "Invalid email or password",
+        variant: "destructive"
+      });
       setIsLoading(false);
-    }, 1000);
+      return;
+    }
+    toast({
+      title: "Login Successful",
+      description: `Welcome!`,
+    });
+    setIsLoading(false);
   };
 
-  const handleSignup = () => {
+  // Supabase Signup function
+  const handleSignup = async () => {
     setIsLoading(true);
-    
-    if (signupData.password !== signupData.confirmPassword) {
+    const { email, password, confirmPassword } = signupData;
+
+    if (password !== confirmPassword) {
       toast({
         title: "Password Mismatch",
         description: "Passwords do not match",
@@ -74,17 +61,27 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
       return;
     }
 
-    setTimeout(() => {
-      toast({
-        title: "Account Created",
-        description: "Your account has been created successfully!",
-      });
-      onLogin();
-    }, 1000);
-  };
+    const redirectUrl = `${window.location.origin}/`; // Required for Supabase email confirmation
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: redirectUrl }
+    });
 
-  const fillDemoCredentials = (email: string, password: string) => {
-    setLoginData({ email, password });
+    if (error) {
+      toast({
+        title: "Sign up failed",
+        description: error.message ?? "Please try again",
+        variant: "destructive"
+      });
+      setIsLoading(false);
+      return;
+    }
+    toast({
+      title: "Sign Up Successful",
+      description: `Please check your email to confirm your registration.`,
+    });
+    setIsLoading(false);
   };
 
   return (
@@ -113,13 +110,13 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="flex justify-center">
           {/* Auth Form */}
-          <Card className="shadow-xl">
+          <Card className="shadow-xl w-full max-w-md">
             <CardHeader className="bg-primary text-primary-foreground rounded-t-lg">
               <CardTitle className="text-2xl text-center">Access Portal</CardTitle>
               <CardDescription className="text-primary-foreground/80 text-center">
-                Sign in to manage hospital operations
+                Sign in or create an account to manage hospital operations
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
@@ -128,7 +125,7 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
                   <TabsTrigger value="login">Sign In</TabsTrigger>
                   <TabsTrigger value="signup">Sign Up</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="login" className="space-y-4">
                   <div>
                     <Label htmlFor="email">Email</Label>
@@ -136,7 +133,7 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
                       id="email"
                       type="email"
                       value={loginData.email}
-                      onChange={(e) => setLoginData({...loginData, email: e.target.value})}
+                      onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                       placeholder="Enter your email"
                     />
                   </div>
@@ -146,37 +143,28 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
                       id="password"
                       type="password"
                       value={loginData.password}
-                      onChange={(e) => setLoginData({...loginData, password: e.target.value})}
+                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                       placeholder="Enter your password"
                     />
                   </div>
-                  <Button 
-                    onClick={handleLogin} 
-                    className="w-full" 
+                  <Button
+                    onClick={handleLogin}
+                    className="w-full"
                     disabled={isLoading}
                   >
                     {isLoading ? "Signing In..." : "Sign In"}
                   </Button>
                 </TabsContent>
-                
+
                 <TabsContent value="signup" className="space-y-4">
-                  <div>
-                    <Label htmlFor="fullName">Full Name</Label>
-                    <Input
-                      id="fullName"
-                      value={signupData.fullName}
-                      onChange={(e) => setSignupData({...signupData, fullName: e.target.value})}
-                      placeholder="Enter full name"
-                    />
-                  </div>
                   <div>
                     <Label htmlFor="signupEmail">Email</Label>
                     <Input
                       id="signupEmail"
                       type="email"
                       value={signupData.email}
-                      onChange={(e) => setSignupData({...signupData, email: e.target.value})}
-                      placeholder="Enter email"
+                      onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                      placeholder="Enter your email"
                     />
                   </div>
                   <div>
@@ -185,7 +173,7 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
                       id="signupPassword"
                       type="password"
                       value={signupData.password}
-                      onChange={(e) => setSignupData({...signupData, password: e.target.value})}
+                      onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
                       placeholder="Create password"
                     />
                   </div>
@@ -195,58 +183,19 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
                       id="confirmPassword"
                       type="password"
                       value={signupData.confirmPassword}
-                      onChange={(e) => setSignupData({...signupData, confirmPassword: e.target.value})}
+                      onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
                       placeholder="Confirm password"
                     />
                   </div>
-                  <Button 
-                    onClick={handleSignup} 
-                    className="w-full" 
+                  <Button
+                    onClick={handleSignup}
+                    className="w-full"
                     disabled={isLoading}
                   >
                     {isLoading ? "Creating Account..." : "Create Account"}
                   </Button>
                 </TabsContent>
               </Tabs>
-            </CardContent>
-          </Card>
-
-          {/* Demo Credentials */}
-          <Card className="shadow-xl">
-            <CardHeader className="bg-muted">
-              <CardTitle>Demo Credentials</CardTitle>
-              <CardDescription>
-                Use these credentials to test different user roles
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {demoCredentials.map((cred, index) => (
-                  <div key={index} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="font-semibold">{cred.role}</h3>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fillDemoCredentials(cred.email, cred.password)}
-                      >
-                        Use
-                      </Button>
-                    </div>
-                    <p className="text-sm text-gray-600">Email: {cred.email}</p>
-                    <p className="text-sm text-gray-600">Password: {cred.password}</p>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="mt-6 p-4 bg-muted rounded-lg">
-                <h4 className="font-semibold mb-2">Role Permissions:</h4>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li><strong>Admin:</strong> Full access to all features</li>
-                  <li><strong>Doctor:</strong> Medical records, appointments</li>
-                  <li><strong>Staff:</strong> Patient management, billing</li>
-                </ul>
-              </div>
             </CardContent>
           </Card>
         </div>
