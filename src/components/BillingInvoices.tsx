@@ -371,7 +371,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
         <body>
           <div class="invoice-container">
             <div class="header-section">
-              <div class="hospital-name">Vision Multispeciality Hospital</div>
+              <div class="hospital-name">VISION MULTISPECIALTY HOSPITAL</div>
               <div class="hospital-details">
                 Moshi-Chikhali Near RKH Blessings<br>
                 Moshi, Pune - 412105<br>
@@ -388,7 +388,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
               <div class="billing-info">
                 <div class="company-info">
                   <div class="section-title">Company:</div>
-                  <div class="info-line">Vision Multispeciality Hospital</div>
+                  <div class="info-line">VISION MULTISPECIALTY HOSPITAL</div>
                   <div class="info-line">Moshi-Chikhali Near RKH Blessings</div>
                   <div class="info-line">Moshi, Pune - 412105</div>
                 </div>
@@ -467,7 +467,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
 
               <div class="footer-section">
                 <div style="margin-bottom: 10px; font-size: 16px; color: #667eea; font-weight: 600;">
-                  Thank you for choosing Vision Multispeciality Hospital
+                  Thank you for choosing VISION MULTISPECIALTY HOSPITAL
                 </div>
                 <div>For support, contact us at 9766660572 or 9146383404</div>
               </div>

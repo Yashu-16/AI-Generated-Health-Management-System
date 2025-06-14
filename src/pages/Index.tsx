@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,7 @@ const Index = () => {
       <div className="border-b bg-white shadow-sm">
         <div className="flex h-16 items-center justify-between px-6">
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-gray-900">Hospital Management System</h1>
+            <h1 className="text-2xl font-bold text-gray-900">VISION MULTISPECIALTY HOSPITAL</h1>
             <Badge variant="secondary" className="ml-2">
               {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
             </Badge>
