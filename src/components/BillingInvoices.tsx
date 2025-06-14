@@ -65,6 +65,12 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     return `INV-${currentYear}-${paddedRandom}`;
   };
 
+  // Helper function to get patient name by ID
+  const getPatientName = (patientId: string) => {
+    const patient = patients?.find(p => p.id === patientId);
+    return patient?.fullName || patientId;
+  };
+
   // Calculated values for create form
   const subtotal = useMemo(() =>
     items.reduce((sum, item) => sum + Number(item.total ?? 0), 0)
@@ -194,6 +200,8 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     const printWindow = window.open("", "_blank", "width=800,height=1040");
     if (!printWindow) return;
 
+    const patientName = getPatientName(invoice.patientId);
+
     printWindow.document.write(`
       <html>
         <head>
@@ -239,7 +247,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             <div class="invoice-title">INVOICE <span style="font-size:1rem; font-weight:normal;">#${invoice.invoiceNumber}</span></div>
             <div class="info-grid">
               <div>
-                <span class="label">Patient ID:</span> <span class="value">${invoice.patientId}</span>
+                <span class="label">Patient Name:</span> <span class="value">${patientName}</span>
               </div>
               <div>
                 <span class="label">Issue Date:</span> <span class="value">${invoice.issueDate ? new Date(invoice.issueDate).toLocaleDateString() : ""}</span>
@@ -325,8 +333,9 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   };
 
   const filteredInvoices = (invoices ?? []).filter(invoice => {
+    const patientName = getPatientName(invoice.patientId);
     const matchesSearch = invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.patientId?.includes(searchTerm);
+      patientName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "All" || invoice.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -562,7 +571,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             <div>
               <div className="mb-2 flex flex-col gap-1">
                 <div><b>Invoice Number:</b> {selectedInvoice.invoiceNumber}</div>
-                <div><b>Patient ID:</b> {selectedInvoice.patientId}</div>
+                <div><b>Patient Name:</b> {getPatientName(selectedInvoice.patientId)}</div>
                 <div><b>Issue Date:</b> {selectedInvoice.issueDate.toLocaleDateString()}</div>
                 <div><b>Due Date:</b> {selectedInvoice.dueDate.toLocaleDateString()}</div>
               </div>
@@ -632,7 +641,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by invoice number or patient ID..."
+                  placeholder="Search by invoice number or patient name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8"
@@ -660,7 +669,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             <TableHeader>
               <TableRow>
                 <TableHead>Invoice Number</TableHead>
-                <TableHead>Patient ID</TableHead>
+                <TableHead>Patient Name</TableHead>
                 <TableHead>Issue Date</TableHead>
                 <TableHead>Due Date</TableHead>
                 <TableHead>Total Amount</TableHead>
@@ -672,7 +681,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
               {filteredInvoices.map((invoice) => (
                 <TableRow key={invoice.id}>
                   <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                  <TableCell>{invoice.patientId}</TableCell>
+                  <TableCell>{getPatientName(invoice.patientId)}</TableCell>
                   <TableCell>{invoice.issueDate.toLocaleDateString()}</TableCell>
                   <TableCell>{invoice.dueDate.toLocaleDateString()}</TableCell>
                   <TableCell>₹{invoice.total}</TableCell>
