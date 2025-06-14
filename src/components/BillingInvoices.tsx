@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -469,6 +468,14 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                     <Button
                       variant="outline"
                       size="sm"
+                      title="Edit Invoice"
+                      onClick={() => handleEditInvoice(invoice)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       title="Print Invoice"
                       onClick={() => handlePrintInvoice(invoice)}
                     >
@@ -486,4 +493,3 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
 };
 
 export default BillingInvoices;
-
