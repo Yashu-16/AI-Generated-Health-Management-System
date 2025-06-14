@@ -554,7 +554,7 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
             </TableBody>
           </Table>
         </CardContent>
-      </Dialog>
+      </Card>
     </div>
   );
 };
