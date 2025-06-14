@@ -54,8 +54,15 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   const [discount, setDiscount] = useState<number>(0);
   const [status, setStatus] = useState<"Pending" | "Paid" | "Overdue" | "Cancelled">("Pending");
   const [paymentMethod, setPaymentMethod] = useState<string>("");
-  const [paymentDate, setPaymentDate] = useState<string>("");
+  const [paymentDate, setPaymentDate] = useState<string>(() => format(new Date(), "yyyy-MM-dd"));
   const [notes, setNotes] = useState<string>("");
+
+  // Function to generate auto invoice number
+  const generateInvoiceNumber = () => {
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
+    return `INV-${timestamp}-${random}`;
+  };
 
   // Calculated values for create form
   const subtotal = useMemo(() =>
@@ -68,7 +75,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
 
   const resetCreateForm = () => {
     setPatientId("");
-    setInvoiceNumber("");
+    setInvoiceNumber(generateInvoiceNumber());
     setIssueDate(format(new Date(), "yyyy-MM-dd"));
     setDueDate(format(new Date(), "yyyy-MM-dd"));
     setItems([{ ...defaultItem }]);
@@ -76,7 +83,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     setDiscount(0);
     setStatus("Pending");
     setPaymentMethod("");
-    setPaymentDate("");
+    setPaymentDate(format(new Date(), "yyyy-MM-dd"));
     setNotes("");
   };
 
@@ -346,6 +353,8 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                     value={invoiceNumber}
                     onChange={e => setInvoiceNumber(e.target.value)}
                     required
+                    readOnly
+                    className="bg-gray-50"
                   />
                 </div>
                 <div>
@@ -423,12 +432,18 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="paymentMethod">Payment Method</Label>
-                  <Input
-                    id="paymentMethod"
-                    value={paymentMethod}
-                    onChange={e => setPaymentMethod(e.target.value)}
-                    placeholder="(optional)"
-                  />
+                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Cash">Cash</SelectItem>
+                      <SelectItem value="Card">Card</SelectItem>
+                      <SelectItem value="Insurance">Insurance</SelectItem>
+                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="UPI">UPI</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="paymentDate">Payment Date</Label>
@@ -437,7 +452,6 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                     type="date"
                     value={paymentDate}
                     onChange={e => setPaymentDate(e.target.value)}
-                    placeholder="(optional)"
                   />
                 </div>
               </div>

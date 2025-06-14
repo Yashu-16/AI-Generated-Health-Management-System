@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,15 @@ const defaultItem: InvoiceItem = {
   description: "",
   category: "Consultation",
   quantity: 1,
-  unitPrice: 0,
+  unitPrice: "",
   total: 0,
+};
+
+// Function to generate auto invoice number
+const generateInvoiceNumber = () => {
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 1000);
+  return `INV-${timestamp}-${random}`;
 };
 
 export default function InvoiceCreatePage() {
@@ -37,8 +44,13 @@ export default function InvoiceCreatePage() {
   const [discount, setDiscount] = useState<number>(0);
   const [status, setStatus] = useState<"Pending"|"Paid"|"Overdue"|"Cancelled">("Pending");
   const [paymentMethod, setPaymentMethod] = useState<string>("");
-  const [paymentDate, setPaymentDate] = useState<string>("");
+  const [paymentDate, setPaymentDate] = useState<string>(() => format(new Date(), "yyyy-MM-dd"));
   const [notes, setNotes] = useState<string>("");
+
+  // Auto-generate invoice number on component mount
+  useEffect(() => {
+    setInvoiceNumber(generateInvoiceNumber());
+  }, []);
 
   // Calculated
   const subtotal = useMemo(() =>
@@ -116,6 +128,8 @@ export default function InvoiceCreatePage() {
                   value={invoiceNumber}
                   onChange={e => setInvoiceNumber(e.target.value)}
                   required
+                  readOnly
+                  className="bg-gray-50"
                 />
               </div>
               <div>
@@ -193,12 +207,18 @@ export default function InvoiceCreatePage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="paymentMethod">Payment Method</Label>
-                <Input
-                  id="paymentMethod"
-                  value={paymentMethod}
-                  onChange={e => setPaymentMethod(e.target.value)}
-                  placeholder="(optional)"
-                />
+                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Cash">Cash</SelectItem>
+                    <SelectItem value="Card">Card</SelectItem>
+                    <SelectItem value="Insurance">Insurance</SelectItem>
+                    <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                    <SelectItem value="UPI">UPI</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="paymentDate">Payment Date</Label>
@@ -207,7 +227,6 @@ export default function InvoiceCreatePage() {
                   type="date"
                   value={paymentDate}
                   onChange={e => setPaymentDate(e.target.value)}
-                  placeholder="(optional)"
                 />
               </div>
             </div>

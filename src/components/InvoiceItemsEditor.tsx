@@ -1,130 +1,137 @@
 
 import React from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Trash2, Plus } from "lucide-react";
 import { InvoiceItem } from "@/types/hospital";
 
-interface Props {
+interface InvoiceItemsEditorProps {
   items: InvoiceItem[];
   setItems: (items: InvoiceItem[]) => void;
-  readOnly?: boolean;
 }
 
-export default function InvoiceItemsEditor({ items, setItems, readOnly }: Props) {
-  const handleChange = (
-    idx: number,
-    field: keyof InvoiceItem,
-    value: string | number
-  ) => {
+const categories = [
+  "Consultation",
+  "Laboratory",
+  "Radiology", 
+  "Medication",
+  "Surgery",
+  "Room Charges",
+  "Equipment",
+  "Other"
+];
+
+const InvoiceItemsEditor = ({ items, setItems }: InvoiceItemsEditorProps) => {
+  const updateItem = (index: number, field: keyof InvoiceItem, value: any) => {
     const newItems = [...items];
-    if (field === "quantity" || field === "unitPrice") {
-      newItems[idx][field] = Number(value);
-      newItems[idx].total = newItems[idx].quantity * newItems[idx].unitPrice;
-    } else {
-      (newItems[idx][field] as any) = value;
+    newItems[index] = { ...newItems[index], [field]: value };
+    
+    // Calculate total when quantity or unitPrice changes
+    if (field === 'quantity' || field === 'unitPrice') {
+      const quantity = field === 'quantity' ? Number(value) : Number(newItems[index].quantity);
+      const unitPrice = field === 'unitPrice' ? Number(value) : Number(newItems[index].unitPrice);
+      newItems[index].total = quantity * unitPrice;
     }
+    
     setItems(newItems);
   };
 
-  const handleAdd = () => {
-    setItems([
-      ...items,
-      {
-        description: "",
-        category: "Consultation",
-        quantity: 1,
-        unitPrice: 0,
-        total: 0,
-      },
-    ]);
+  const addItem = () => {
+    setItems([...items, {
+      description: "",
+      category: "Consultation",
+      quantity: 1,
+      unitPrice: "",
+      total: 0,
+    }]);
   };
 
-  const handleRemove = (idx: number) => {
-    const newItems = items.slice();
-    newItems.splice(idx, 1);
-    setItems(newItems);
+  const removeItem = (index: number) => {
+    if (items.length > 1) {
+      setItems(items.filter((_, i) => i !== index));
+    }
   };
 
   return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-12 gap-2">
-        <span className="col-span-3 font-medium">Description</span>
-        <span className="col-span-2 font-medium">Category</span>
-        <span className="col-span-2 font-medium">Qty</span>
-        <span className="col-span-2 font-medium">Unit Price</span>
-        <span className="col-span-2 font-medium">Total</span>
-        <span className="col-span-1"></span>
-      </div>
-      {items.map((item, idx) => (
-        <div key={idx} className="grid grid-cols-12 gap-2">
-          <Input
-            className="col-span-3"
-            value={item.description}
-            onChange={e =>
-              handleChange(idx, "description", e.target.value)
-            }
-            disabled={readOnly}
-          />
-          <select
-            className="col-span-2 rounded border px-2 py-1 bg-background"
-            value={item.category}
-            onChange={e =>
-              handleChange(
-                idx,
-                "category",
-                e.target.value as InvoiceItem["category"]
-              )
-            }
-            disabled={readOnly}
-          >
-            <option value="Consultation">Consultation</option>
-            <option value="Medication">Medication</option>
-            <option value="Lab Test">Lab Test</option>
-            <option value="Room Charge">Room Charge</option>
-            <option value="Procedure">Procedure</option>
-            <option value="Other">Other</option>
-          </select>
-          <Input
-            className="col-span-2"
-            type="number"
-            min={1}
-            value={item.quantity}
-            onChange={e => handleChange(idx, "quantity", e.target.value)}
-            disabled={readOnly}
-          />
-          <Input
-            className="col-span-2"
-            type="number"
-            min={0}
-            value={item.unitPrice}
-            onChange={e => handleChange(idx, "unitPrice", e.target.value)}
-            disabled={readOnly}
-          />
-          <Input
-            className="col-span-2"
-            value={item.total}
-            disabled
-            readOnly
-          />
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            className="col-span-1"
-            onClick={() => handleRemove(idx)}
-            disabled={readOnly}
-            tabIndex={-1}
-          >
-            ×
-          </Button>
+    <div className="space-y-4">
+      {items.map((item, index) => (
+        <div key={index} className="grid grid-cols-12 gap-2 items-end p-4 border rounded-lg">
+          <div className="col-span-3">
+            <label className="text-sm font-medium">Description</label>
+            <Input
+              value={item.description}
+              onChange={(e) => updateItem(index, 'description', e.target.value)}
+              placeholder="Item description"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="text-sm font-medium">Category</label>
+            <Select 
+              value={item.category} 
+              onValueChange={(value) => updateItem(index, 'category', value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map(cat => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="col-span-1">
+            <label className="text-sm font-medium">Qty</label>
+            <Input
+              type="number"
+              min="1"
+              value={item.quantity}
+              onChange={(e) => updateItem(index, 'quantity', Number(e.target.value))}
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="text-sm font-medium">Unit Price</label>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={item.unitPrice}
+              onChange={(e) => updateItem(index, 'unitPrice', e.target.value)}
+              placeholder="0.00"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="text-sm font-medium">Total</label>
+            <Input
+              value={item.total}
+              readOnly
+              className="bg-gray-50"
+            />
+          </div>
+          <div className="col-span-2 flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addItem}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => removeItem(index)}
+              disabled={items.length <= 1}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       ))}
-      {!readOnly && (
-        <Button type="button" variant="outline" onClick={handleAdd}>
-          Add Item
-        </Button>
-      )}
     </div>
   );
-}
+};
+
+export default InvoiceItemsEditor;
