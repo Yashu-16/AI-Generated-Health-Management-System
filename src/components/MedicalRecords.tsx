@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,80 +11,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Plus, FileText, Activity, TestTube } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { MedicalRecord, Medication, LabResult } from "@/types/hospital";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MedicalRecordsProps {
   userRole: "admin" | "doctor" | "staff";
 }
 
 const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
-  const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([
-    {
-      id: "rec1",
-      patientId: "1",
-      doctorId: "doc1",
-      visitDate: new Date("2024-06-12"),
-      chiefComplaint: "Chest pain and shortness of breath",
-      diagnosis: "Acute myocardial infarction",
-      treatment: "Emergency cardiac catheterization, stent placement",
-      medications: [
-        {
-          name: "Atorvastatin",
-          dosage: "40mg",
-          frequency: "Once daily",
-          duration: "Ongoing",
-          instructions: "Take with evening meal"
-        },
-        {
-          name: "Metoprolol",
-          dosage: "25mg",
-          frequency: "Twice daily",
-          duration: "Ongoing",
-          instructions: "Take with food"
-        }
-      ],
-      vitalSigns: {
-        temperature: 98.6,
-        bloodPressure: "140/90",
-        heartRate: 85,
-        respiratoryRate: 18,
-        oxygenSaturation: 97
-      },
-      labResults: [
-        {
-          testName: "Troponin I",
-          result: "15.2 ng/mL",
-          normalRange: "< 0.04 ng/mL",
-          status: "Critical"
-        },
-        {
-          testName: "Total Cholesterol",
-          result: "280 mg/dL",
-          normalRange: "< 200 mg/dL",
-          status: "Abnormal"
-        }
-      ],
-      notes: "Patient responded well to treatment. Recommend cardiac rehabilitation program.",
-      followUpDate: new Date("2024-06-26"),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ]);
+  const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
+  const [patients, setPatients] = useState<{id: string, name: string}[]>([]);
+  const [doctors, setDoctors] = useState<{id: string, name: string}[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
   const { toast } = useToast();
-
-  // Mock data
-  const patients = [
-    { id: "1", name: "John Doe" },
-    { id: "2", name: "Sarah Wilson" }
-  ];
-
-  const doctors = [
-    { id: "doc1", name: "Dr. Sarah Johnson" },
-    { id: "doc2", name: "Dr. Michael Chen" }
-  ];
 
   const [newRecord, setNewRecord] = useState({
     patientId: "",
@@ -101,7 +43,58 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
     oxygenSaturation: ""
   });
 
-  const handleAddRecord = () => {
+  // Fetch patients and doctors for dropdowns
+  useEffect(() => {
+    const fetchMeta = async () => {
+      const [{ data: patientData }, { data: doctorData }] = await Promise.all([
+        supabase.from("patients").select("id, full_name"),
+        supabase.from("doctors").select("id, full_name"),
+      ]);
+      if (patientData) setPatients(patientData.map((p: any) => ({ id: p.id, name: p.full_name })));
+      if (doctorData) setDoctors(doctorData.map((d: any) => ({ id: d.id, name: d.full_name })));
+    };
+    fetchMeta();
+  }, []);
+
+  // Fetch medical records from supabase
+  const fetchMedicalRecords = async () => {
+    setLoading(true);
+    setError(null);
+    const { data, error } = await supabase
+      .from("medical_records")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      setError("Failed to fetch records");
+      setLoading(false);
+      return;
+    }
+    // Map data to MedicalRecord objects
+    const mapped = (data || []).map((rec: any) => ({
+      id: rec.id,
+      patientId: rec.patient_id,
+      doctorId: rec.doctor_id,
+      visitDate: rec.visit_date ? new Date(rec.visit_date) : undefined,
+      chiefComplaint: rec.chief_complaint ?? "",
+      diagnosis: rec.diagnosis ?? "",
+      treatment: rec.treatment ?? "",
+      medications: rec.medications ?? [],
+      vitalSigns: rec.vital_signs ?? {},
+      labResults: rec.lab_results ?? [],
+      notes: rec.notes ?? "",
+      followUpDate: rec.follow_up_date ? new Date(rec.follow_up_date) : undefined,
+      createdAt: rec.created_at ? new Date(rec.created_at) : new Date(),
+      updatedAt: rec.updated_at ? new Date(rec.updated_at) : new Date(),
+    }));
+    setMedicalRecords(mapped);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchMedicalRecords();
+  }, []);
+
+  const handleAddRecord = async () => {
     if (!newRecord.patientId || !newRecord.doctorId || !newRecord.chiefComplaint) {
       toast({
         title: "Error",
@@ -111,58 +104,58 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
       return;
     }
 
-    const record: MedicalRecord = {
-      id: `rec_${Date.now()}`,
-      patientId: newRecord.patientId,
-      doctorId: newRecord.doctorId,
-      visitDate: new Date(),
-      chiefComplaint: newRecord.chiefComplaint,
+    const insertData = {
+      patient_id: newRecord.patientId,
+      doctor_id: newRecord.doctorId,
+      visit_date: new Date().toISOString().slice(0, 10),
+      chief_complaint: newRecord.chiefComplaint,
       diagnosis: newRecord.diagnosis,
       treatment: newRecord.treatment,
       medications: [],
-      vitalSigns: {
+      vital_signs: {
         temperature: parseFloat(newRecord.temperature) || 0,
         bloodPressure: newRecord.bloodPressure,
         heartRate: parseInt(newRecord.heartRate) || 0,
         respiratoryRate: parseInt(newRecord.respiratoryRate) || 0,
         oxygenSaturation: parseInt(newRecord.oxygenSaturation) || 0
       },
-      labResults: [],
+      lab_results: [],
       notes: newRecord.notes,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
-    setMedicalRecords([...medicalRecords, record]);
-    
-    toast({
-      title: "Medical Record Added",
-      description: "New medical record has been created successfully",
-    });
-
-    setNewRecord({
-      patientId: "",
-      doctorId: "",
-      chiefComplaint: "",
-      diagnosis: "",
-      treatment: "",
-      notes: "",
-      temperature: "",
-      bloodPressure: "",
-      heartRate: "",
-      respiratoryRate: "",
-      oxygenSaturation: ""
-    });
-    setShowAddDialog(false);
+    const { error } = await supabase.from("medical_records").insert([insertData]);
+    if (error) {
+      toast({ title: "Error", description: "Could not add medical record", variant: "destructive" });
+    } else {
+      toast({ title: "Medical Record Added", description: "New medical record has been created successfully" });
+      setShowAddDialog(false);
+      setNewRecord({
+        patientId: "",
+        doctorId: "",
+        chiefComplaint: "",
+        diagnosis: "",
+        treatment: "",
+        notes: "",
+        temperature: "",
+        bloodPressure: "",
+        heartRate: "",
+        respiratoryRate: "",
+        oxygenSaturation: ""
+      });
+      fetchMedicalRecords();
+    }
   };
 
   const filteredRecords = medicalRecords.filter(record => {
     const patient = patients.find(p => p.id === record.patientId);
     const doctor = doctors.find(d => d.id === record.doctorId);
-    
-    return patient?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           doctor?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           record.diagnosis.toLowerCase().includes(searchTerm.toLowerCase());
+    return (
+      (patient?.name && patient.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (doctor?.name && doctor.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (record.diagnosis && record.diagnosis.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
   });
 
   const getLabStatusColor = (status: string) => {
