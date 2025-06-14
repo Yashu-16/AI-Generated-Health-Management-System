@@ -7,86 +7,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, IndianRupee, FileText, User, TrendingUp, Barcode } from "lucide-react";
+import { Search, Plus, IndianRupee, FileText, User, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Invoice, InvoiceItem } from "@/types/hospital";
+import { useInvoices } from "@/hooks/useInvoices";
+import { usePatientNames } from "@/hooks/usePatientNames";
 
 interface BillingInvoicesProps {
   userRole: "admin" | "doctor" | "staff";
 }
 
 const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
-  const [invoices, setInvoices] = useState<Invoice[]>([
-    {
-      id: "inv1",
-      patientId: "1",
-      invoiceNumber: "INV-2024-001",
-      issueDate: new Date("2024-06-10"),
-      dueDate: new Date("2024-07-10"),
-      items: [
-        {
-          description: "Cardiology Consultation",
-          quantity: 1,
-          unitPrice: 2000,
-          total: 2000,
-          category: "Consultation"
-        },
-        {
-          description: "ECG Test",
-          quantity: 1,
-          unitPrice: 1500,
-          total: 1500,
-          category: "Lab Test"
-        },
-        {
-          description: "Room Charge (Private Room)",
-          quantity: 3,
-          unitPrice: 3000,
-          total: 9000,
-          category: "Room Charge"
-        }
-      ],
-      subtotal: 12500,
-      tax: 1250,
-      discount: 0,
-      total: 13750,
-      status: "Pending",
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: "inv2",
-      patientId: "2",
-      invoiceNumber: "INV-2024-002",
-      issueDate: new Date("2024-06-11"),
-      dueDate: new Date("2024-07-11"),
-      items: [
-        {
-          description: "Emergency Room Visit",
-          quantity: 1,
-          unitPrice: 5000,
-          total: 5000,
-          category: "Consultation"
-        },
-        {
-          description: "Blood Work Panel",
-          quantity: 1,
-          unitPrice: 2000,
-          total: 2000,
-          category: "Lab Test"
-        }
-      ],
-      subtotal: 7000,
-      tax: 700,
-      discount: 500,
-      total: 7200,
-      status: "Paid",
-      paymentMethod: "Credit Card",
-      paymentDate: new Date("2024-06-12"),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ]);
+  // INTEGRATE SUPABASE
+  const { invoices, isLoading, error, addInvoice, updateInvoice, refetch } = useInvoices();
+  const { data: patients, isLoading: patientsLoading, error: patientsError } = usePatientNames();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -98,22 +32,17 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   const [editInvoice, setEditInvoice] = useState<Invoice | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
 
-  // Mock data
-  const patients = [
-    { id: "1", name: "John Doe", email: "john.doe@email.com" },
-    { id: "2", name: "Sarah Wilson", email: "sarah.wilson@email.com" }
-  ];
-
+  // For add new invoice form
   const [newInvoice, setNewInvoice] = useState({
     patientId: "",
     items: [{ description: "", quantity: 1, unitPrice: 0, total: 0, category: "Consultation" as const }],
     discount: 0,
-    notes: ""
+    notes: "",
   });
 
   const generateInvoiceNumber = () => {
     const year = new Date().getFullYear();
-    const nextNumber = (invoices.length + 1).toString().padStart(3, '0');
+    const nextNumber = (invoices ? invoices.length + 1 : 1).toString().padStart(3, '0');
     return `INV-${year}-${nextNumber}`;
   };
 
@@ -151,7 +80,8 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     setNewInvoice({ ...newInvoice, items: updatedItems });
   };
 
-  const handleCreateInvoice = () => {
+  // CREATE INVOICE - Supabase
+  const handleCreateInvoice = async () => {
     if (!newInvoice.patientId || newInvoice.items.some(item => !item.description)) {
       toast({
         title: "Error",
@@ -160,13 +90,11 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
       });
       return;
     }
-
     const subtotal = newInvoice.items.reduce((sum, item) => sum + item.total, 0);
     const tax = subtotal * 0.1;
     const total = subtotal + tax - newInvoice.discount;
 
-    const invoice: Invoice = {
-      id: `inv_${Date.now()}`,
+    const invoiceObj = {
       patientId: newInvoice.patientId,
       invoiceNumber: generateInvoiceNumber(),
       issueDate: new Date(),
@@ -188,28 +116,98 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
       updatedAt: new Date()
     };
 
-    setInvoices([...invoices, invoice]);
-    
-    const patient = patients.find(p => p.id === newInvoice.patientId);
-    const referenceNumber = generateUniqueReferenceNumber();
-    console.log(`Invoice ${invoice.invoiceNumber} with reference ${referenceNumber} emailed to ${patient?.email}`);
-    
-    toast({
-      title: "Invoice Created",
-      description: `Invoice ${invoice.invoiceNumber} has been generated with reference number`,
-    });
-
-    setNewInvoice({
-      patientId: "",
-      items: [{ description: "", quantity: 1, unitPrice: 0, total: 0, category: "Consultation" as const }],
-      discount: 0,
-      notes: ""
-    });
-    setShowAddDialog(false);
+    try {
+      await addInvoice.mutateAsync(invoiceObj);
+      toast({
+        title: "Invoice Created",
+        description: `Invoice ${invoiceObj.invoiceNumber} created`
+      });
+      setNewInvoice({
+        patientId: "",
+        items: [{ description: "", quantity: 1, unitPrice: 0, total: 0, category: "Consultation" as const }],
+        discount: 0,
+        notes: ""
+      });
+      setShowAddDialog(false);
+      refetch();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
   };
 
+  // EDIT INVOICE - Supabase
+  const handleUpdateInvoice = async () => {
+    if (!editInvoice) return;
+    const subtotal = editInvoice.items.reduce((sum, i) => sum + i.total, 0);
+    const tax = subtotal * 0.1;
+    const total = subtotal + tax - (editInvoice.discount || 0);
+
+    const updatedInvoice = {
+      ...editInvoice,
+      subtotal,
+      tax,
+      total,
+      updatedAt: new Date(),
+    };
+
+    try {
+      await updateInvoice.mutateAsync(updatedInvoice);
+      setShowEditDialog(false);
+      setEditInvoice(null);
+      toast({
+        title: "Invoice Updated",
+        description: `Invoice ${updatedInvoice.invoiceNumber} updated successfully`,
+      });
+      refetch();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
+
+  // Handle changes in editInvoice dialog
+  const handleEditInvoiceChange = (field: keyof Invoice, value: any) => {
+    if (!editInvoice) return;
+    setEditInvoice((prev) => prev ? { ...prev, [field]: value } : prev);
+  };
+
+  // Handle invoice item updates
+  const handleEditInvoiceItemChange = (idx: number, field: keyof InvoiceItem, value: any) => {
+    if (!editInvoice) return;
+    setEditInvoice((prev) => {
+      if (!prev) return prev;
+      const items = prev.items.map((it, i) =>
+        i === idx ? { ...it, [field]: value, total: (field === 'quantity' || field === 'unitPrice') 
+          ? ((field === 'quantity' ? value : it.quantity) * (field === 'unitPrice' ? value : it.unitPrice)) : it.total } : it
+      );
+      return { ...prev, items };
+    });
+  };
+
+  // Filtered invoices using loaded patients
+  const filteredInvoices = (invoices ?? []).filter(invoice => {
+    const patient = patients?.find(p => p.id === invoice.patientId);
+    const matchesSearch = patient?.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "All" || invoice.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Pending": return "bg-yellow-100 text-yellow-800";
+      case "Paid": return "bg-green-100 text-green-800";
+      case "Overdue": return "bg-red-100 text-red-800";
+      case "Cancelled": return "bg-gray-100 text-gray-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const totalRevenue = (invoices ?? []).filter(inv => inv.status === "Paid").reduce((sum, inv) => sum + inv.total, 0);
+  const pendingAmount = (invoices ?? []).filter(inv => inv.status === "Pending").reduce((sum, inv) => sum + inv.total, 0);
+  const overdueAmount = (invoices ?? []).filter(inv => inv.status === "Overdue").reduce((sum, inv) => sum + inv.total, 0);
+
   const printInvoiceWithReference = (invoice: Invoice) => {
-    const patient = patients.find(p => p.id === invoice.patientId);
+    const patient = patients?.find(p => p.id === invoice.patientId);
     const referenceNumber = generateUniqueReferenceNumber();
     
     const printWindow = window.open('', '_blank');
@@ -248,7 +246,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
               <div style="display: flex; justify-content: space-between;">
                 <div>
                   <p><strong>Invoice Number:</strong> ${invoice.invoiceNumber}</p>
-                  <p><strong>Patient Name:</strong> ${patient?.name}</p>
+                  <p><strong>Patient Name:</strong> ${patient?.fullName}</p>
                   <p><strong>Issue Date:</strong> ${invoice.issueDate.toLocaleDateString('en-IN')}</p>
                 </div>
                 <div>
@@ -320,7 +318,8 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   };
 
   const updateInvoiceStatus = (invoiceId: string, status: "Paid" | "Overdue" | "Cancelled") => {
-    setInvoices(invoices.map(inv => {
+    if (!invoices) return;
+    const updatedInvoices = invoices.map(inv => {
       if (inv.id === invoiceId) {
         const updatedInvoice = {
           ...inv,
@@ -334,12 +333,18 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
         return updatedInvoice;
       }
       return inv;
-    }));
-    
-    toast({
-      title: "Status Updated",
-      description: `Invoice status changed to ${status}`,
     });
+    // Since invoices is from hook, we cannot directly set it here.
+    // Instead, we update via updateInvoice mutation for the changed invoice.
+    const updatedInvoice = updatedInvoices.find(inv => inv.id === invoiceId);
+    if (updatedInvoice) {
+      updateInvoice.mutate(updatedInvoice);
+      toast({
+        title: "Status Updated",
+        description: `Invoice status changed to ${status}`,
+      });
+      refetch();
+    }
   };
 
   // Function to start editing
@@ -348,74 +353,10 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     setShowEditDialog(true);
   };
 
-  // Handle changes in editInvoice dialog
-  const handleEditInvoiceChange = (field: keyof Invoice, value: any) => {
-    if (!editInvoice) return;
-    setEditInvoice((prev) => prev ? { ...prev, [field]: value } : prev);
-  };
-
-  // Handle invoice item updates
-  const handleEditInvoiceItemChange = (idx: number, field: keyof InvoiceItem, value: any) => {
-    if (!editInvoice) return;
-    setEditInvoice((prev) => {
-      if (!prev) return prev;
-      const items = prev.items.map((it, i) =>
-        i === idx ? { ...it, [field]: value, total: (field === 'quantity' || field === 'unitPrice') 
-          ? ((field === 'quantity' ? value : it.quantity) * (field === 'unitPrice' ? value : it.unitPrice)) : it.total } : it
-      );
-      return { ...prev, items };
-    });
-  };
-
-  // Save updated invoice
-  const handleUpdateInvoice = () => {
-    if (!editInvoice) return;
-    // Compute new totals
-    const subtotal = editInvoice.items.reduce((sum, i) => sum + i.total, 0);
-    const tax = subtotal * 0.1;
-    const total = subtotal + tax - (editInvoice.discount || 0);
-
-    const updatedInvoice: Invoice = {
-      ...editInvoice,
-      subtotal,
-      tax,
-      total,
-      updatedAt: new Date(),
-    };
-
-    setInvoices((prev) => prev.map(i => i.id === updatedInvoice.id ? updatedInvoice : i));
-
-    // TODO: Replace below with actual Supabase update when backend is connected:
-    // await supabase.from('invoices').update({ ...updatedInvoice, ... })
-    setShowEditDialog(false);
-    setEditInvoice(null);
-    toast({
-      title: "Invoice Updated",
-      description: `Invoice ${updatedInvoice.invoiceNumber} updated successfully`,
-    });
-  };
-
-  const filteredInvoices = invoices.filter(invoice => {
-    const patient = patients.find(p => p.id === invoice.patientId);
-    const matchesSearch = patient?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "All" || invoice.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Pending": return "bg-yellow-100 text-yellow-800";
-      case "Paid": return "bg-green-100 text-green-800";
-      case "Overdue": return "bg-red-100 text-red-800";
-      case "Cancelled": return "bg-gray-100 text-gray-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const totalRevenue = invoices.filter(inv => inv.status === "Paid").reduce((sum, inv) => sum + inv.total, 0);
-  const pendingAmount = invoices.filter(inv => inv.status === "Pending").reduce((sum, inv) => sum + inv.total, 0);
-  const overdueAmount = invoices.filter(inv => inv.status === "Overdue").reduce((sum, inv) => sum + inv.total, 0);
+  // Show loading states and errors at top
+  if (isLoading || patientsLoading) return <div>Loading...</div>;
+  if (error) return <div className="text-destructive">Error loading invoices: {error.message}</div>;
+  if (patientsError) return <div className="text-destructive">Error loading patients: {patientsError.message}</div>;
 
   return (
     <div className="space-y-6">
@@ -446,9 +387,9 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                     onChange={(e) => setNewInvoice({...newInvoice, patientId: e.target.value})}
                   >
                     <option value="">Select patient</option>
-                    {patients.map(patient => (
+                    {patients?.map(patient => (
                       <option key={patient.id} value={patient.id}>
-                        {patient.name}
+                        {patient.fullName}
                       </option>
                     ))}
                   </select>
@@ -621,7 +562,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             <TrendingUp className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{invoices.length}</div>
+            <div className="text-2xl font-bold">{invoices?.length ?? 0}</div>
           </CardContent>
         </Card>
       </div>
@@ -672,12 +613,12 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             </TableHeader>
             <TableBody>
               {filteredInvoices.map((invoice) => {
-                const patient = patients.find(p => p.id === invoice.patientId);
+                const patient = patients?.find(p => p.id === invoice.patientId);
                 
                 return (
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                    <TableCell>{patient?.name}</TableCell>
+                    <TableCell>{patient?.fullName}</TableCell>
                     <TableCell>{invoice.issueDate.toLocaleDateString('en-IN')}</TableCell>
                     <TableCell>{invoice.dueDate.toLocaleDateString('en-IN')}</TableCell>
                     <TableCell>₹{invoice.total.toLocaleString('en-IN')}</TableCell>
@@ -711,7 +652,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
                                   <Label className="font-semibold">Patient</Label>
-                                  <p>{patients.find(p => p.id === selectedInvoice.patientId)?.name}</p>
+                                  <p>{patients?.find(p => p.id === selectedInvoice.patientId)?.fullName}</p>
                                 </div>
                                 <div>
                                   <Label className="font-semibold">Status</Label>
@@ -802,9 +743,9 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                   onChange={(e) => handleEditInvoiceChange("patientId", e.target.value)}
                 >
                   <option value="">Select patient</option>
-                  {patients.map(patient => (
+                  {patients?.map(patient => (
                     <option key={patient.id} value={patient.id}>
-                      {patient.name}
+                      {patient.fullName}
                     </option>
                   ))}
                 </select>
