@@ -68,13 +68,15 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
     const { data, error } = await supabase
       .from("medical_records")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false }); // get all including face_sheet_snapshot
+
     if (error) {
       setError("Failed to fetch records");
       setLoading(false);
       return;
     }
-    // Map data to MedicalRecord objects
+
+    // Map the face_sheet_snapshot field to faceSheetSnapshot property
     const mapped = (data || []).map((rec: any) => ({
       id: rec.id,
       patientId: rec.patient_id,
@@ -90,7 +92,7 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
       followUpDate: rec.follow_up_date ? new Date(rec.follow_up_date) : undefined,
       createdAt: rec.created_at ? new Date(rec.created_at) : new Date(),
       updatedAt: rec.updated_at ? new Date(rec.updated_at) : new Date(),
-      faceSheetSnapshot: rec.face_sheet_snapshot ?? null,
+      faceSheetSnapshot: rec.face_sheet_snapshot ?? null, // <-- make sure this is mapped
     }));
     setMedicalRecords(mapped);
     setLoading(false);
