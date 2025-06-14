@@ -130,6 +130,99 @@ export type Database = {
         }
         Relationships: []
       }
+      face_sheets: {
+        Row: {
+          age: number | null
+          bed_no: string | null
+          consultant_doctor: string | null
+          contact_no: string | null
+          created_at: string | null
+          date_of_admission: string | null
+          discharge_card_prepared_by: string | null
+          discharge_date: string | null
+          discharge_time: string | null
+          final_diagnosis: string | null
+          icd_codes: string | null
+          id: string
+          id_proof_taken: string | null
+          ipd_no: string | null
+          patient_address: string | null
+          patient_category: string | null
+          patient_name: string
+          patient_sub_category: string | null
+          prn_no: string | null
+          provisional_diagnosis: string | null
+          ref_by_doctor: string | null
+          relative_address: string | null
+          relative_name: string | null
+          sex: string | null
+          time: string | null
+          type_of_discharge: string | null
+          updated_at: string | null
+          ward_name: string | null
+        }
+        Insert: {
+          age?: number | null
+          bed_no?: string | null
+          consultant_doctor?: string | null
+          contact_no?: string | null
+          created_at?: string | null
+          date_of_admission?: string | null
+          discharge_card_prepared_by?: string | null
+          discharge_date?: string | null
+          discharge_time?: string | null
+          final_diagnosis?: string | null
+          icd_codes?: string | null
+          id?: string
+          id_proof_taken?: string | null
+          ipd_no?: string | null
+          patient_address?: string | null
+          patient_category?: string | null
+          patient_name: string
+          patient_sub_category?: string | null
+          prn_no?: string | null
+          provisional_diagnosis?: string | null
+          ref_by_doctor?: string | null
+          relative_address?: string | null
+          relative_name?: string | null
+          sex?: string | null
+          time?: string | null
+          type_of_discharge?: string | null
+          updated_at?: string | null
+          ward_name?: string | null
+        }
+        Update: {
+          age?: number | null
+          bed_no?: string | null
+          consultant_doctor?: string | null
+          contact_no?: string | null
+          created_at?: string | null
+          date_of_admission?: string | null
+          discharge_card_prepared_by?: string | null
+          discharge_date?: string | null
+          discharge_time?: string | null
+          final_diagnosis?: string | null
+          icd_codes?: string | null
+          id?: string
+          id_proof_taken?: string | null
+          ipd_no?: string | null
+          patient_address?: string | null
+          patient_category?: string | null
+          patient_name?: string
+          patient_sub_category?: string | null
+          prn_no?: string | null
+          provisional_diagnosis?: string | null
+          ref_by_doctor?: string | null
+          relative_address?: string | null
+          relative_name?: string | null
+          sex?: string | null
+          time?: string | null
+          type_of_discharge?: string | null
+          updated_at?: string | null
+          ward_name?: string | null
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           created_at: string | null

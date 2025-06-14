@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Plus, FileText, Printer, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FaceSheetProps {
   userRole: "admin" | "doctor" | "staff";
@@ -46,35 +46,9 @@ interface FaceSheetData {
 }
 
 const FaceSheet = ({ userRole }: FaceSheetProps) => {
-  const [faceSheets, setFaceSheets] = useState<FaceSheetData[]>([
-    {
-      id: "fs1",
-      patientName: "BALASAHEB SHELKE",
-      age: 60,
-      sex: "M",
-      prnNo: "VMH2506/00032",
-      ipdNo: "IPD2506/00637",
-      patientCategory: "CASH",
-      patientSubCategory: "",
-      dateOfAdmission: new Date("2025-06-12"),
-      time: "05:00 PM",
-      consultantDoctor: "Dr.AKSHAY BANDGAR",
-      refByDoctor: "",
-      patientAddress: "BHAGWAN GAVHANE CHOWK BHOSARI",
-      wardName: "",
-      bedNo: "",
-      idProofTaken: "-",
-      relativeName: "SONALI UNKI",
-      contactNo: "9823019845/9146964765",
-      relativeAddress: "",
-      provisionalDiagnosis: "",
-      finalDiagnosis: "",
-      icdCodes: "",
-      typeOfDischarge: "Normal Discharge",
-      dischargeCardPreparedBy: "",
-      createdAt: new Date()
-    }
-  ]);
+  // Now FaceSheetData array is loaded from Supabase
+  const [faceSheets, setFaceSheets] = useState<FaceSheetData[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -104,6 +78,66 @@ const FaceSheet = ({ userRole }: FaceSheetProps) => {
     icdCodes: ""
   });
 
+  // Helper to load all face sheets from Supabase
+  const fetchFaceSheets = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("face_sheets")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      toast({
+        title: "Error loading face sheets",
+        description: error.message,
+        variant: "destructive"
+      });
+      setFaceSheets([]); // fallback empty
+    } else if (data) {
+      setFaceSheets(
+        data.map((sheet: any) => ({
+          id: sheet.id,
+          patientName: sheet.patient_name,
+          age: sheet.age,
+          sex: sheet.sex,
+          prnNo: sheet.prn_no,
+          ipdNo: sheet.ipd_no,
+          patientCategory: sheet.patient_category,
+          patientSubCategory: sheet.patient_sub_category,
+          dateOfAdmission: sheet.date_of_admission
+            ? new Date(sheet.date_of_admission)
+            : new Date(),
+          time: sheet.time ?? "",
+          consultantDoctor: sheet.consultant_doctor ?? "",
+          refByDoctor: sheet.ref_by_doctor ?? "",
+          patientAddress: sheet.patient_address ?? "",
+          wardName: sheet.ward_name ?? "",
+          bedNo: sheet.bed_no ?? "",
+          idProofTaken: sheet.id_proof_taken ?? "",
+          relativeName: sheet.relative_name ?? "",
+          contactNo: sheet.contact_no ?? "",
+          relativeAddress: sheet.relative_address ?? "",
+          provisionalDiagnosis: sheet.provisional_diagnosis ?? "",
+          finalDiagnosis: sheet.final_diagnosis ?? "",
+          icdCodes: sheet.icd_codes ?? "",
+          dischargeDate: sheet.discharge_date
+            ? new Date(sheet.discharge_date)
+            : undefined,
+          dischargeTime: sheet.discharge_time ?? "",
+          typeOfDischarge: (sheet.type_of_discharge ??
+            "Normal Discharge") as FaceSheetData["typeOfDischarge"],
+          dischargeCardPreparedBy: sheet.discharge_card_prepared_by ?? "",
+          createdAt: sheet.created_at ? new Date(sheet.created_at) : new Date()
+        }))
+      );
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchFaceSheets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const generatePRNNumber = () => {
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);
@@ -120,7 +154,7 @@ const FaceSheet = ({ userRole }: FaceSheetProps) => {
     return `IPD${year}${month}/${random}`;
   };
 
-  const handleCreateFaceSheet = () => {
+  const handleCreateFaceSheet = async () => {
     if (!newFaceSheet.patientName || !newFaceSheet.age || !newFaceSheet.contactNo) {
       toast({
         title: "Error",
@@ -130,65 +164,75 @@ const FaceSheet = ({ userRole }: FaceSheetProps) => {
       return;
     }
 
-    const faceSheet: FaceSheetData = {
-      id: `fs_${Date.now()}`,
-      patientName: newFaceSheet.patientName.toUpperCase(),
+    // Prepare record for Supabase
+    const insertObj = {
+      patient_name: newFaceSheet.patientName.toUpperCase(),
       age: parseInt(newFaceSheet.age),
       sex: newFaceSheet.sex as "M" | "F",
-      prnNo: newFaceSheet.prnNo || generatePRNNumber(),
-      ipdNo: newFaceSheet.ipdNo || generateIPDNumber(),
-      patientCategory: newFaceSheet.patientCategory,
-      patientSubCategory: newFaceSheet.patientSubCategory,
-      dateOfAdmission: new Date(),
+      prn_no: newFaceSheet.prnNo || generatePRNNumber(),
+      ipd_no: newFaceSheet.ipdNo || generateIPDNumber(),
+      patient_category: newFaceSheet.patientCategory,
+      patient_sub_category: newFaceSheet.patientSubCategory,
+      date_of_admission: new Date().toISOString().slice(0, 10), // "YYYY-MM-DD"
       time: newFaceSheet.time,
-      consultantDoctor: newFaceSheet.consultantDoctor,
-      refByDoctor: newFaceSheet.refByDoctor,
-      patientAddress: newFaceSheet.patientAddress.toUpperCase(),
-      wardName: newFaceSheet.wardName,
-      bedNo: newFaceSheet.bedNo,
-      idProofTaken: newFaceSheet.idProofTaken,
-      relativeName: newFaceSheet.relativeName.toUpperCase(),
-      contactNo: newFaceSheet.contactNo,
-      relativeAddress: newFaceSheet.relativeAddress,
-      provisionalDiagnosis: newFaceSheet.provisionalDiagnosis,
-      finalDiagnosis: newFaceSheet.finalDiagnosis,
-      icdCodes: newFaceSheet.icdCodes,
-      typeOfDischarge: "Normal Discharge",
-      dischargeCardPreparedBy: "",
-      createdAt: new Date()
+      consultant_doctor: newFaceSheet.consultantDoctor,
+      ref_by_doctor: newFaceSheet.refByDoctor,
+      patient_address: newFaceSheet.patientAddress.toUpperCase(),
+      ward_name: newFaceSheet.wardName,
+      bed_no: newFaceSheet.bedNo,
+      id_proof_taken: newFaceSheet.idProofTaken,
+      relative_name: newFaceSheet.relativeName.toUpperCase(),
+      contact_no: newFaceSheet.contactNo,
+      relative_address: newFaceSheet.relativeAddress,
+      provisional_diagnosis: newFaceSheet.provisionalDiagnosis,
+      final_diagnosis: newFaceSheet.finalDiagnosis,
+      icd_codes: newFaceSheet.icdCodes,
+      type_of_discharge: "Normal Discharge",
+      discharge_card_prepared_by: "",
+      created_at: new Date().toISOString()
     };
 
-    setFaceSheets([...faceSheets, faceSheet]);
-    
-    toast({
-      title: "Face Sheet Created",
-      description: `Face sheet for ${faceSheet.patientName} has been created successfully`,
-    });
+    const { error } = await supabase
+      .from("face_sheets")
+      .insert([insertObj]);
 
-    // Reset form
-    setNewFaceSheet({
-      patientName: "",
-      age: "",
-      sex: "",
-      prnNo: "",
-      ipdNo: "",
-      patientCategory: "CASH",
-      patientSubCategory: "",
-      time: "",
-      consultantDoctor: "",
-      refByDoctor: "",
-      patientAddress: "",
-      wardName: "",
-      bedNo: "",
-      idProofTaken: "",
-      relativeName: "",
-      contactNo: "",
-      relativeAddress: "",
-      provisionalDiagnosis: "",
-      finalDiagnosis: "",
-      icdCodes: ""
-    });
-    setShowAddDialog(false);
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create face sheet: " + error.message,
+        variant: "destructive"
+      });
+      return;
+    } else {
+      toast({
+        title: "Face Sheet Created",
+        description: `Face sheet for ${insertObj.patient_name} has been created successfully`,
+      });
+      fetchFaceSheets(); // Reload new data
+      setNewFaceSheet({
+        patientName: "",
+        age: "",
+        sex: "",
+        prnNo: "",
+        ipdNo: "",
+        patientCategory: "CASH",
+        patientSubCategory: "",
+        time: "",
+        consultantDoctor: "",
+        refByDoctor: "",
+        patientAddress: "",
+        wardName: "",
+        bedNo: "",
+        idProofTaken: "",
+        relativeName: "",
+        contactNo: "",
+        relativeAddress: "",
+        provisionalDiagnosis: "",
+        finalDiagnosis: "",
+        icdCodes: ""
+      });
+      setShowAddDialog(false);
+    }
   };
 
   const printFaceSheet = (faceSheet: FaceSheetData) => {
@@ -594,6 +638,9 @@ const FaceSheet = ({ userRole }: FaceSheetProps) => {
             </div>
           </div>
 
+          {loading ? (
+            <div className="p-6 text-muted-foreground text-center">Loading...</div>
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -661,6 +708,7 @@ const FaceSheet = ({ userRole }: FaceSheetProps) => {
               ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
     </div>
