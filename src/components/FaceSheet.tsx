@@ -244,139 +244,164 @@ const FaceSheet = ({ userRole }: FaceSheetProps) => {
             <title>IPD Case Paper - ${faceSheet.patientName}</title>
             <style>
               body { font-family: Arial, sans-serif; margin: 20px; }
-              .header { text-align: center; margin-bottom: 20px; border: 1px solid #000; padding: 10px; }
-              .title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
-              .section { margin: 10px 0; }
-              .field { margin: 5px 0; }
-              .label { font-weight: bold; display: inline-block; width: 150px; }
-              .discharge-section { margin-top: 30px; border: 1px solid #000; padding: 10px; }
-              .checkbox { margin: 10px; }
+              .header {
+                text-align: center; margin-bottom: 20px; border: 1px solid #000; padding: 10px;
+              }
+              .title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+              .clinic-contact { color: #b8001f; margin: 4px 0; }
+              .section-title {
+                font-size: 15px; font-weight: bold; margin: 30px 0 10px 0; text-align: left; border-bottom: 2px solid #000;
+              }
+              .table-section {
+                width: 100%; border-collapse: collapse; margin-bottom: 10px;
+              }
+              .table-section td {
+                padding: 4px 8px;
+                vertical-align: top;
+                font-size: 15px;
+              }
+              .table-section .label {
+                font-weight: bold;
+                text-align: left;
+                width: 190px;
+              }
+              .double-col { width: 45%; }
+              .hr { border: none; border-bottom: 1.5px solid #000; margin: 20px 0; }
+              .discharge-section {
+                margin-top: 24px;
+                border: 1px solid #000; 
+                padding: 14px 18px 10px 18px;
+                width: 95%;
+                font-size: 15px;
+              }
+              .discharge-section .dtype-row { margin: 10px 0; }
+              .checkbox-row {
+                display: flex;
+                gap: 60px;
+                margin: 5px 0 0 20px;
+              }
+              .checkbox-item {
+                display: flex;
+                align-items: center;
+                min-width: 200px;
+                font-size: 15px;
+              }
+              .signature {
+                margin-top: 22px;
+                font-size: 15px;
+              }
             </style>
           </head>
           <body>
             <div class="header">
               <div class="title">VISION MULTISPECIALITY HOSPITAL</div>
               <div>Moshi-Chikhali Near RKH Blessings, Moshi,Pune -412105</div>
-              <div>📞 9766660572/9146383404</div>
+              <div class="clinic-contact">&#128222; 9766660572/9146383404</div>
             </div>
             
-            <div style="text-align: center; margin: 20px 0; font-size: 16px; font-weight: bold;">
+            <div style="text-align: center; margin: 14px 0 20px 0; font-size: 18px; font-weight: bold;">
               IPD CASE PAPER
             </div>
             
-            <div class="section">
-              <div class="field">
-                <span class="label">Name of the Patient:</span> ${faceSheet.patientName}
-                <span style="margin-left: 100px;">Age: ${faceSheet.age}</span>
-                <span style="margin-left: 50px;">Sex: ${faceSheet.sex}</span>
-              </div>
-            </div>
-            
-            <div class="section">
-              <div class="field">
-                <span class="label">PRN NO:</span> ${faceSheet.prnNo}
-                <span style="margin-left: 100px;">IPD NO: ${faceSheet.ipdNo}</span>
-              </div>
-            </div>
-            
-            <div class="section">
-              <div class="field">
-                <span class="label">Patient Category:</span> ${faceSheet.patientCategory}
-                <span style="margin-left: 50px;">Patient Sub Category: ${faceSheet.patientSubCategory}</span>
-              </div>
-            </div>
-            
-            <div class="section">
-              <div class="field">
-                <span class="label">Date of Admission:</span> ${faceSheet.dateOfAdmission.toLocaleDateString()}
-                <span style="margin-left: 50px;">Time: ${faceSheet.time}</span>
-              </div>
-            </div>
-            
-            <div class="section">
-              <div class="field">
-                <span class="label">Consultant Doctor:</span> ${faceSheet.consultantDoctor}
-                <span style="margin-left: 50px;">Ref By Doctor: ${faceSheet.refByDoctor}</span>
-              </div>
-            </div>
-            
-            <div class="section">
-              <div class="field">
-                <span class="label">Patient Address:</span> ${faceSheet.patientAddress}
-              </div>
-            </div>
-            
-            <div class="section">
-              <div class="field">
-                <span class="label">Ward Name:</span> ${faceSheet.wardName}
-                <span style="margin-left: 100px;">Bed NO: ${faceSheet.bedNo}</span>
-              </div>
-            </div>
-            
-            <div class="section">
-              <div class="field">
-                <span class="label">ID Proof Taken:</span> ${faceSheet.idProofTaken}
-              </div>
-            </div>
-            
-            <div class="section">
-              <div class="field">
-                <span class="label">Relative Name:</span> ${faceSheet.relativeName}
-                <span style="margin-left: 50px;">Contact NO: ${faceSheet.contactNo}</span>
-              </div>
-            </div>
-            
-            <div class="section">
-              <div class="field">
-                <span class="label">Relative Address:</span> ${faceSheet.relativeAddress}
-              </div>
-            </div>
-            
-            <div class="section">
-              <div class="field">
-                <span class="label">Provisional Diagnosis:</span>
-                <div style="border-bottom: 1px solid #000; height: 30px; margin-top: 5px;">${faceSheet.provisionalDiagnosis}</div>
-              </div>
-            </div>
-            
-            <div class="section">
-              <div class="field">
-                <span class="label">Final Diagnosis:</span>
-                <div style="border-bottom: 1px solid #000; height: 30px; margin-top: 5px;">${faceSheet.finalDiagnosis}</div>
-              </div>
-            </div>
-            
-            <div class="section">
-              <div class="field">
-                <span class="label">ICD Codes:</span>
-                <div style="border-bottom: 1px solid #000; height: 30px; margin-top: 5px;">${faceSheet.icdCodes}</div>
-              </div>
-            </div>
-            
+            <table class="table-section">
+              <tr>
+                <td class="label">Name of the Patient:</td>
+                <td class="double-col">${faceSheet.patientName}</td>
+                <td class="label" style="width:80px;">Age:</td>
+                <td>${faceSheet.age}</td>
+                <td class="label" style="width:60px;">Sex:</td>
+                <td>${faceSheet.sex}</td>
+              </tr>
+              <tr>
+                <td class="label">PRN NO:</td>
+                <td class="double-col">${faceSheet.prnNo}</td>
+                <td class="label">IPD NO:</td>
+                <td colspan="3">${faceSheet.ipdNo}</td>
+              </tr>
+              <tr>
+                <td class="label">Patient Category:</td>
+                <td class="double-col">${faceSheet.patientCategory}</td>
+                <td class="label">Patient Sub Category:</td>
+                <td colspan="3">${faceSheet.patientSubCategory}</td>
+              </tr>
+              <tr>
+                <td class="label">Date of Admission:</td>
+                <td class="double-col">${faceSheet.dateOfAdmission ? faceSheet.dateOfAdmission.toLocaleDateString() : ''}</td>
+                <td class="label">Time:</td>
+                <td colspan="3">${faceSheet.time}</td>
+              </tr>
+              <tr>
+                <td class="label">Consultant Doctor:</td>
+                <td class="double-col">${faceSheet.consultantDoctor}</td>
+                <td class="label">Ref By Doctor:</td>
+                <td colspan="3">${faceSheet.refByDoctor}</td>
+              </tr>
+              <tr>
+                <td class="label">Patient Address:</td>
+                <td class="double-col" colspan="5">${faceSheet.patientAddress}</td>
+              </tr>
+              <tr>
+                <td class="label">Ward Name:</td>
+                <td class="double-col">${faceSheet.wardName}</td>
+                <td class="label">Bed NO:</td>
+                <td colspan="3">${faceSheet.bedNo}</td>
+              </tr>
+              <tr>
+                <td class="label">ID Proof Taken:</td>
+                <td class="double-col" colspan="5">${faceSheet.idProofTaken}</td>
+              </tr>
+              <tr>
+                <td class="label">Relative Name:</td>
+                <td class="double-col">${faceSheet.relativeName}</td>
+                <td class="label">Contact NO:</td>
+                <td colspan="3">${faceSheet.contactNo}</td>
+              </tr>
+              <tr>
+                <td class="label">Relative Address:</td>
+                <td class="double-col" colspan="5">${faceSheet.relativeAddress}</td>
+              </tr>
+              <tr>
+                <td class="label">Provisional Diagnosis:</td>
+                <td class="double-col" colspan="5" style="border-bottom:1px solid #000;height:36px;">
+                  ${faceSheet.provisionalDiagnosis}
+                </td>
+              </tr>
+              <tr>
+                <td class="label">Final Diagnosis:</td>
+                <td class="double-col" colspan="5" style="border-bottom:1px solid #000;height:30px;">
+                  ${faceSheet.finalDiagnosis}
+                </td>
+              </tr>
+              <tr>
+                <td class="label">ICD Codes:</td>
+                <td class="double-col" colspan="5" style="border-bottom:1px solid #000;height:30px;">
+                  ${faceSheet.icdCodes}
+                </td>
+              </tr>
+            </table>
+
             <div class="discharge-section">
-              <div style="font-weight: bold; margin-bottom: 10px;">Discharge Record:</div>
-              
-              <div class="field">
-                <span class="label">Date Of Discharge:</span> ${faceSheet.dischargeDate ? faceSheet.dischargeDate.toLocaleDateString() : '_____________'}
-                <span style="margin-left: 50px;">Time: ${faceSheet.dischargeTime || '_____________'}</span>
+              <div style="font-weight: bold; margin-bottom: 6px;">Discharge Record:</div>
+              <table>
+                <tr>
+                  <td class="label" style="width:150px;">Date Of Discharge:</td>
+                  <td style="width:160px;">${faceSheet.dischargeDate ? faceSheet.dischargeDate.toLocaleDateString() : '_____________'}</td>
+                  <td class="label" style="width:50px;">Time:</td>
+                  <td>${faceSheet.dischargeTime || '_____________'}</td>
+                </tr>
+              </table>
+              <div class="dtype-row" style="margin-top:8px;font-weight:bold;">Type of Discharge:</div>
+              <div class="checkbox-row">
+                <span class="checkbox-item">☐ Normal Discharge</span>
+                <span class="checkbox-item">☐ Discharged On Requested</span>
               </div>
-              
-              <div class="field" style="margin-top: 20px;">
-                <span class="label">Type of Discharge:</span>
+              <div class="checkbox-row">
+                <span class="checkbox-item">☐ Against Medical Advice</span>
+                <span class="checkbox-item">☐ Absconded/Died</span>
               </div>
-              
-              <div class="checkbox">
-                ☐ Normal Discharge
-                <span style="margin-left: 100px;">☐ Discharged On Requested</span>
-              </div>
-              <div class="checkbox">
-                ☐ Against Medical Advice
-                <span style="margin-left: 74px;">☐ Absconded/Died</span>
-              </div>
-              
-              <div class="field" style="margin-top: 30px;">
-                <span class="label">Discharge card Prepared By:</span>
-                <div style="border-bottom: 1px solid #000; width: 300px; display: inline-block;">${faceSheet.dischargeCardPreparedBy}</div>
+              <div class="signature" style="margin-top:24px;">
+                <span class="label" style="font-weight:bold;">Discharge card Prepared By:</span>
+                <span style="display:inline-block; border-bottom:1px solid #000; width:250px; margin-left:3px;">${faceSheet.dischargeCardPreparedBy}</span>
               </div>
             </div>
           </body>
