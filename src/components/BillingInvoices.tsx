@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Invoice } from "@/types/hospital";
 import { useInvoices } from "@/hooks/useInvoices";
 import { usePatientNames } from "@/hooks/usePatientNames";
+import { useNavigate } from "react-router-dom";
 
 // Define the allowed statuses for Invoice status field
 type InvoiceStatus = "Pending" | "Paid" | "Overdue" | "Cancelled";
@@ -23,65 +25,13 @@ interface BillingInvoicesProps {
 const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showViewDialog, setShowViewDialog] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const { invoices, isLoading, error, addInvoice, updateInvoice, refetch } = useInvoices();
-  const { data: patients, isLoading: patientsLoading } = usePatientNames();
-
-  // Ensures status is always type-safe
-  const [newInvoice, setNewInvoice] = useState<Omit<Invoice, "id" | "createdAt" | "updatedAt">>({
-    patientId: "",
-    invoiceNumber: "",
-    issueDate: new Date(),
-    dueDate: new Date(),
-    items: [],
-    subtotal: 0,
-    tax: 0,
-    discount: 0,
-    total: 0,
-    status: "Pending",
-    paymentMethod: undefined,
-    paymentDate: undefined,
-    notes: "",
-  });
-
-  const handleAddInvoice = async () => {
-    // Basic validation
-    if (!newInvoice.patientId || !newInvoice.invoiceNumber) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      // Make sure status is explicitly one of the allowed values (should always be by type)
-      await addInvoice.mutateAsync({
-        ...newInvoice,
-        status: newInvoice.status as InvoiceStatus,
-        issueDate: newInvoice.issueDate,
-        dueDate: newInvoice.dueDate,
-      });
-      toast({
-        title: "Invoice Added Successfully",
-        description: `Invoice ${newInvoice.invoiceNumber} has been created`,
-      });
-      setShowAddDialog(false);
-    } catch (err: any) {
-      toast({
-        title: "Error adding invoice",
-        description: err.message || "Failed to add invoice",
-        variant: "destructive"
-      });
-    }
-  };
+  const { invoices, isLoading, error, updateInvoice, refetch } = useInvoices();
 
   const handleEditInvoice = async (invoice: Invoice) => {
     setSelectedInvoice(invoice);
@@ -272,106 +222,14 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
           <p className="text-muted-foreground">Manage patient invoices and billing records</p>
         </div>
         {(userRole === "admin" || userRole === "staff") && (
-          <Dialog open={showAddDialog} onOpenChange={(open) => {
-            setShowAddDialog(open);
-            if (!open) {
-              setSelectedPatient(null);
-              setNewInvoice({
-                patientId: "",
-                invoiceNumber: "",
-                issueDate: new Date(),
-                dueDate: new Date(),
-                items: [],
-                subtotal: 0,
-                tax: 0,
-                discount: 0,
-                total: 0,
-                status: "Pending",
-                paymentMethod: undefined,
-                paymentDate: undefined,
-                notes: "",
-              });
-            }
-          }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Create New Invoice
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Create New Invoice</DialogTitle>
-                <DialogDescription>
-                  Fill in the invoice information below. Select the patient by name.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Patient Name Selection */}
-                  <div>
-                    <Label htmlFor="patientId">Patient Name</Label>
-                    <select
-                      className="mt-1 w-full border rounded px-3 py-2 bg-background"
-                      id="patientId"
-                      value={selectedPatient?.id || ""}
-                      onChange={e => {
-                        const p = patients?.find(pt => pt.id === e.target.value) || null;
-                        setSelectedPatient(p);
-                        setNewInvoice({ ...newInvoice, patientId: e.target.value });
-                      }}
-                      disabled={patientsLoading}
-                    >
-                      <option value="">Select a patient...</option>
-                      {patients?.map(p => (
-                        <option key={p.id} value={p.id}>{p.fullName}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <Label htmlFor="invoiceNumber">Invoice Number</Label>
-                    <Input
-                      id="invoiceNumber"
-                      value={newInvoice.invoiceNumber}
-                      onChange={(e) => setNewInvoice({ ...newInvoice, invoiceNumber: e.target.value })}
-                    />
-                  </div>
-                </div>
-                {/* Display patient details if selected */}
-                {selectedPatient && (
-                  <div className="grid grid-cols-3 gap-4 border rounded px-3 py-2 bg-accent/40 text-accent-foreground">
-                    <div><b>Patient ID:</b> {selectedPatient.id}</div>
-                    <div><b>Age:</b> {selectedPatient.age ?? "-"}</div>
-                    <div><b>Gender:</b> {selectedPatient.gender ?? "-"}</div>
-                    <div><b>Phone:</b> {selectedPatient.phone ?? "-"}</div>
-                  </div>
-                )}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="issueDate">Issue Date</Label>
-                    <Input
-                      id="issueDate"
-                      type="date"
-                      value={newInvoice.issueDate.toISOString().slice(0, 10)}
-                      onChange={(e) => setNewInvoice({ ...newInvoice, issueDate: new Date(e.target.value) })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="dueDate">Due Date</Label>
-                    <Input
-                      id="dueDate"
-                      type="date"
-                      value={newInvoice.dueDate.toISOString().slice(0, 10)}
-                      onChange={(e) => setNewInvoice({ ...newInvoice, dueDate: new Date(e.target.value) })}
-                    />
-                  </div>
-                </div>
-                <Button onClick={handleAddInvoice} className="w-full">
-                  Create Invoice
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button 
+            onClick={() => navigate("/billing/create")} 
+            className="justify-start h-12"
+            variant="outline"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Create New Invoice
+          </Button>
         )}
       </div>
 
