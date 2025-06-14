@@ -11,6 +11,7 @@ import { Search, Plus, Edit, FileText, Printer } from "lucide-react"; // Only im
 import { useToast } from "@/hooks/use-toast";
 import { Invoice } from "@/types/hospital";
 import { useInvoices } from "@/hooks/useInvoices";
+import { usePatientNames } from "@/hooks/usePatientNames";
 
 // Define the allowed statuses for Invoice status field
 type InvoiceStatus = "Pending" | "Paid" | "Overdue" | "Cancelled";
@@ -26,9 +27,11 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showViewDialog, setShowViewDialog] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const { toast } = useToast();
 
   const { invoices, isLoading, error, addInvoice, updateInvoice, refetch } = useInvoices();
+  const { data: patients, isLoading: patientsLoading } = usePatientNames();
 
   // Ensures status is always type-safe
   const [newInvoice, setNewInvoice] = useState<Omit<Invoice, "id" | "createdAt" | "updatedAt">>({
@@ -269,7 +272,27 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
           <p className="text-muted-foreground">Manage patient invoices and billing records</p>
         </div>
         {(userRole === "admin" || userRole === "staff") && (
-          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+          <Dialog open={showAddDialog} onOpenChange={(open) => {
+            setShowAddDialog(open);
+            if (!open) {
+              setSelectedPatient(null);
+              setNewInvoice({
+                patientId: "",
+                invoiceNumber: "",
+                issueDate: new Date(),
+                dueDate: new Date(),
+                items: [],
+                subtotal: 0,
+                tax: 0,
+                discount: 0,
+                total: 0,
+                status: "Pending",
+                paymentMethod: undefined,
+                paymentDate: undefined,
+                notes: "",
+              });
+            }
+          }}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
@@ -279,27 +302,50 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Create New Invoice</DialogTitle>
-                <DialogDescription>Fill in the invoice information below</DialogDescription>
+                <DialogDescription>
+                  Fill in the invoice information below. Select the patient by name.
+                </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4">
                 <div className="grid grid-cols-2 gap-4">
+                  {/* Patient Name Selection */}
                   <div>
-                    <Label htmlFor="patientId">Patient ID</Label>
-                    <Input
+                    <Label htmlFor="patientId">Patient Name</Label>
+                    <select
+                      className="mt-1 w-full border rounded px-3 py-2 bg-background"
                       id="patientId"
-                      value={newInvoice.patientId}
-                      onChange={(e) => setNewInvoice({...newInvoice, patientId: e.target.value})}
-                    />
+                      value={selectedPatient?.id || ""}
+                      onChange={e => {
+                        const p = patients?.find(pt => pt.id === e.target.value) || null;
+                        setSelectedPatient(p);
+                        setNewInvoice({ ...newInvoice, patientId: e.target.value });
+                      }}
+                      disabled={patientsLoading}
+                    >
+                      <option value="">Select a patient...</option>
+                      {patients?.map(p => (
+                        <option key={p.id} value={p.id}>{p.fullName}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <Label htmlFor="invoiceNumber">Invoice Number</Label>
                     <Input
                       id="invoiceNumber"
                       value={newInvoice.invoiceNumber}
-                      onChange={(e) => setNewInvoice({...newInvoice, invoiceNumber: e.target.value})}
+                      onChange={(e) => setNewInvoice({ ...newInvoice, invoiceNumber: e.target.value })}
                     />
                   </div>
                 </div>
+                {/* Display patient details if selected */}
+                {selectedPatient && (
+                  <div className="grid grid-cols-3 gap-4 border rounded px-3 py-2 bg-accent/40 text-accent-foreground">
+                    <div><b>Patient ID:</b> {selectedPatient.id}</div>
+                    <div><b>Age:</b> {selectedPatient.age ?? "-"}</div>
+                    <div><b>Gender:</b> {selectedPatient.gender ?? "-"}</div>
+                    <div><b>Phone:</b> {selectedPatient.phone ?? "-"}</div>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="issueDate">Issue Date</Label>
@@ -307,7 +353,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                       id="issueDate"
                       type="date"
                       value={newInvoice.issueDate.toISOString().slice(0, 10)}
-                      onChange={(e) => setNewInvoice({...newInvoice, issueDate: new Date(e.target.value)})}
+                      onChange={(e) => setNewInvoice({ ...newInvoice, issueDate: new Date(e.target.value) })}
                     />
                   </div>
                   <div>
@@ -316,7 +362,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                       id="dueDate"
                       type="date"
                       value={newInvoice.dueDate.toISOString().slice(0, 10)}
-                      onChange={(e) => setNewInvoice({...newInvoice, dueDate: new Date(e.target.value)})}
+                      onChange={(e) => setNewInvoice({ ...newInvoice, dueDate: new Date(e.target.value) })}
                     />
                   </div>
                 </div>
