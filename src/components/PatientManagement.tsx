@@ -44,7 +44,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
     emergencyContact: "",
     emergencyPhone: "",
     bloodType: undefined as string | undefined,
-    allergies: "",
+    allergies: [] as string[],
     medicalHistory: "",
     insuranceInfo: "",
     assignedDoctorId: undefined as string | undefined,
@@ -77,7 +77,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       emergencyContact: "",
       emergencyPhone: "",
       bloodType: undefined,
-      allergies: "",
+      allergies: [],
       medicalHistory: "",
       insuranceInfo: "",
       assignedDoctorId: undefined,
@@ -117,7 +117,9 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       emergencyContact: newPatient.emergencyContact,
       emergencyPhone: newPatient.emergencyPhone,
       bloodType: newPatient.bloodType,
-      allergies: newPatient.allergies.split(",").map(a => a.trim()).filter(a => a),
+      allergies: Array.isArray(newPatient.allergies)
+        ? newPatient.allergies.filter((a: any) => !!a && typeof a === "string")
+        : [],
       admissionDate: new Date(),
       status: "Admitted",
       assignedDoctorId: newPatient.assignedDoctorId || null,
@@ -332,12 +334,12 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="allergies">Allergies (comma separated)</Label>
-                  <Input
-                    id="allergies"
+                  <Label htmlFor="allergies">Allergies</Label>
+                  <AllergyAutocomplete
                     value={newPatient.allergies}
-                    onChange={(e) => setNewPatient({...newPatient, allergies: e.target.value})}
-                    placeholder="e.g., Penicillin, Shellfish"
+                    onChange={arr =>
+                      setNewPatient({ ...newPatient, allergies: arr })
+                    }
                   />
                 </div>
                 <div>
