@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,7 +28,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       {/* Header */}
-      <div className="bg-primary text-primary-foreground shadow-lg">
+      <div className="bg-[#102042] text-primary-foreground rounded-t-xl shadow-lg">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -35,17 +36,17 @@ const Index = () => {
                 <Stethoscope className="h-8 w-8 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">VISION MULTISPECIALITY HOSPITAL</h1>
-                <p className="text-primary-foreground/80">Healthcare Management System</p>
+                <h1 className="text-2xl font-bold text-white">VISION MULTISPECIALITY HOSPITAL</h1>
+                <p className="text-primary-foreground/80 text-white/90">Healthcare Management System</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Badge variant="secondary">
-                {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+              <Badge variant="secondary" className="rounded-full font-bold text-black px-6 py-1 text-lg bg-white">
+                Admin
               </Badge>
-              <Button variant="ghost" onClick={handleLogout} className="text-primary-foreground hover:bg-primary/80">
+              <Button variant="ghost" onClick={handleLogout} className="text-white hover:bg-white/10 transition">
                 <LogOut className="h-4 w-4 mr-2" />
-                Logout
+                <span className="text-white">Logout</span>
               </Button>
             </div>
           </div>
