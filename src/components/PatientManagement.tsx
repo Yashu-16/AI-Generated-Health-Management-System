@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/types/hospital";
 import { usePatients } from "@/hooks/usePatients";
 import { supabase } from "@/integrations/supabase/client";
+import AllergyAutocomplete from "./AllergyAutocomplete";
 
 interface PatientManagementProps {
   userRole: "admin" | "doctor" | "staff";
