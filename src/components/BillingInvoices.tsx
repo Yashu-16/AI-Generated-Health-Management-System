@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -207,124 +208,277 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
         <head>
           <title>Print Invoice - ${invoice.invoiceNumber}</title>
           <style>
-            body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; background: #f7f7f7; }
-            .invoice-box { background: #fff; padding: 40px 32px; max-width: 750px; margin: 0 auto; border-radius: 8px; box-shadow: 0 2px 16px rgba(36,37,38,0.11); }
-            .header-custom { border: 1px solid #222; border-radius: 2px; margin-bottom: 26px; padding: 16px 12px 10px 12px; text-align: center; }
-            .header-custom .name { font-weight: bold; font-size: 1.3rem; color: #111843; letter-spacing: 1px; margin-bottom: 4px; }
-            .header-custom .address { color: #08203a; font-size: 1rem; line-height: 1.3; }
-            .header-custom .phones { color: #d12857; font-size: 1rem; margin-top: 3px;}
-            .header-custom .phone-icon { color: #d12857; margin-right: 2px; position: relative; top: 2px;}
-            .invoice-title { font-size:1.25rem;font-weight:bold;color:#185ea6;margin-bottom:8px;text-align:right;}
-            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem 2rem; font-size:1rem;}
-            .label { font-weight: 500; margin-right: 0.5rem; color: #666; }
-            .value { font-weight: 500; color: #191919; }
-            .hr { border: none; border-top: 1px solid #ececec; margin: 18px 0 8px 0; }
-            .items-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 1rem; }
-            .items-table th, .items-table td { border: 1px solid #eee; padding: 8px 10px; text-align: left; }
-            .items-table th { background: #f1f5fb; color: #39548a; font-weight: 700; }
-            .items-table tr:last-child td { border-bottom: 2px solid #ccc; }
-            .summary-table { margin-top: 18px; width: 60%; float: right; border-collapse: collapse; }
-            .summary-table td { padding: 7px 12px; }
-            .summary-label { text-align: right; color: #666; }
-            .summary-value { font-weight: 600; }
-            .summary-table tr:last-child td { font-size: 1.15em; color: #16417e; font-weight: bold; border-top: 1px solid #ddd; }
-            .status-badge { display: inline-block; padding: 4px 14px; font-size: 0.99em; border-radius: 99px; margin-top: 8px; }
-            .status-pending { background: #e0edfa; color: #185ea6; }
-            .status-paid { background: #e2fced; color: #09817c; }
-            .status-overdue { background: #fde2e1; color: #a94442; }
-            .status-cancelled { background: #f0f0f0; color: #636363; }
-            .notes-box { background: #fafbfc; border: 1px solid #e7edf3; padding: 13px 16px; border-radius: 5px; margin-top: 20px; color: #2d3948; }
-            @media print { body { background: #fff; } .invoice-box { box-shadow: none !important; } }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: 'Segoe UI', Arial, sans-serif; 
+              background: #f8f9fa; 
+              padding: 20px; 
+              color: #333;
+            }
+            .invoice-container { 
+              background: white; 
+              max-width: 800px; 
+              margin: 0 auto; 
+              box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+              border-radius: 12px;
+              overflow: hidden;
+            }
+            .header-section {
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              padding: 30px;
+              position: relative;
+              overflow: hidden;
+            }
+            .header-section::before {
+              content: '';
+              position: absolute;
+              top: -50%;
+              right: -50%;
+              width: 200%;
+              height: 200%;
+              background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+              opacity: 0.3;
+            }
+            .hospital-name {
+              font-size: 28px;
+              font-weight: bold;
+              margin-bottom: 8px;
+              position: relative;
+              z-index: 1;
+            }
+            .hospital-details {
+              font-size: 14px;
+              line-height: 1.5;
+              opacity: 0.9;
+              position: relative;
+              z-index: 1;
+            }
+            .invoice-title {
+              position: absolute;
+              top: 30px;
+              right: 30px;
+              text-align: right;
+              z-index: 1;
+            }
+            .invoice-title h2 {
+              font-size: 32px;
+              font-weight: bold;
+              margin-bottom: 5px;
+            }
+            .invoice-number {
+              font-size: 14px;
+              opacity: 0.9;
+            }
+            .content-section {
+              padding: 30px;
+            }
+            .billing-info {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 40px;
+              margin-bottom: 30px;
+            }
+            .company-info, .billing-to {
+              background: #f8f9fa;
+              padding: 20px;
+              border-radius: 8px;
+              border-left: 4px solid #667eea;
+            }
+            .section-title {
+              font-size: 16px;
+              font-weight: 600;
+              color: #667eea;
+              margin-bottom: 10px;
+            }
+            .info-line {
+              margin-bottom: 5px;
+              font-size: 14px;
+              line-height: 1.4;
+            }
+            .items-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin: 30px 0;
+              font-size: 14px;
+            }
+            .items-table th {
+              background: #667eea;
+              color: white;
+              padding: 15px 10px;
+              text-align: left;
+              font-weight: 600;
+              text-transform: uppercase;
+              font-size: 12px;
+              letter-spacing: 0.5px;
+            }
+            .items-table td {
+              padding: 12px 10px;
+              border-bottom: 1px solid #eee;
+            }
+            .items-table tr:hover {
+              background: #f8f9fa;
+            }
+            .text-right { text-align: right; }
+            .text-center { text-align: center; }
+            .summary-section {
+              background: #f8f9fa;
+              padding: 20px;
+              border-radius: 8px;
+              margin-top: 20px;
+            }
+            .summary-row {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 8px;
+              font-size: 14px;
+            }
+            .summary-row.total {
+              font-size: 18px;
+              font-weight: bold;
+              color: #667eea;
+              border-top: 2px solid #667eea;
+              padding-top: 10px;
+              margin-top: 10px;
+            }
+            .footer-section {
+              margin-top: 30px;
+              padding-top: 20px;
+              border-top: 1px solid #eee;
+              text-align: center;
+              color: #666;
+              font-size: 14px;
+            }
+            .status-badge {
+              display: inline-block;
+              padding: 6px 12px;
+              border-radius: 20px;
+              font-size: 12px;
+              font-weight: 600;
+              text-transform: uppercase;
+              margin-top: 10px;
+            }
+            .status-pending { background: #e3f2fd; color: #1976d2; }
+            .status-paid { background: #e8f5e8; color: #2e7d2e; }
+            .status-overdue { background: #ffebee; color: #c62828; }
+            .status-cancelled { background: #f5f5f5; color: #616161; }
+            @media print { 
+              body { background: white; padding: 0; }
+              .invoice-container { box-shadow: none; }
+            }
           </style>
         </head>
         <body>
-          <div class="invoice-box">
-            <div class="header-custom">
-              <div class="name">VISION MULTISPECIALITY HOSPITAL</div>
-              <div class="address">Moshi-Chikhali Near RKH Blessings, Moshi, Pune - 412105</div>
-              <div class="phones"><span class="phone-icon">&#128222;</span> 9766660572 / 9146383404</div>
-            </div>
-            <div class="invoice-title">INVOICE <span style="font-size:1rem; font-weight:normal;">#${invoice.invoiceNumber}</span></div>
-            <div class="info-grid">
-              <div>
-                <span class="label">Patient Name:</span> <span class="value">${patientName}</span>
+          <div class="invoice-container">
+            <div class="header-section">
+              <div class="hospital-name">Vision Multispeciality Hospital</div>
+              <div class="hospital-details">
+                Moshi-Chikhali Near RKH Blessings<br>
+                Moshi, Pune - 412105<br>
+                Phone: 9766660572 / 9146383404
               </div>
-              <div>
-                <span class="label">Issue Date:</span> <span class="value">${invoice.issueDate ? new Date(invoice.issueDate).toLocaleDateString() : ""}</span>
-              </div>
-              <div>
-                <span class="label">Due Date:</span> <span class="value">${invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : ""}</span>
-              </div>
-              <div>
-                <span class="label">Payment Method:</span> <span class="value">${invoice.paymentMethod || "-"}</span>
-              </div>
-              <div>
-                <span class="label">Payment Date:</span> <span class="value">${invoice.paymentDate ? new Date(invoice.paymentDate).toLocaleDateString() : "-"}</span>
+              <div class="invoice-title">
+                <h2>INVOICE</h2>
+                <div class="invoice-number">NUMBER: ${invoice.invoiceNumber}</div>
+                <div class="invoice-number">Date: ${new Date(invoice.issueDate).toLocaleDateString()}</div>
               </div>
             </div>
-            <div class="hr"></div>
-            <table class="items-table">
-              <thead>
-                <tr>
-                  <th>Description</th>
-                  <th>Category</th>
-                  <th>Qty</th>
-                  <th>Unit Price</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${invoice.items?.map(
-                  (item: any) => `
+            
+            <div class="content-section">
+              <div class="billing-info">
+                <div class="company-info">
+                  <div class="section-title">Company:</div>
+                  <div class="info-line">Vision Multispeciality Hospital</div>
+                  <div class="info-line">Moshi-Chikhali Near RKH Blessings</div>
+                  <div class="info-line">Moshi, Pune - 412105</div>
+                </div>
+                <div class="billing-to">
+                  <div class="section-title">Billing to:</div>
+                  <div class="info-line"><strong>${patientName}</strong></div>
+                  <div class="info-line">Invoice Date: ${new Date(invoice.issueDate).toLocaleDateString()}</div>
+                  <div class="info-line">Due Date: ${new Date(invoice.dueDate).toLocaleDateString()}</div>
+                  ${invoice.paymentMethod ? `<div class="info-line">Payment Method: ${invoice.paymentMethod}</div>` : ''}
+                </div>
+              </div>
+
+              <table class="items-table">
+                <thead>
                   <tr>
-                    <td>${item.description}</td>
-                    <td>${item.category ?? ""}</td>
-                    <td style="text-align:center;">${item.quantity}</td>
-                    <td style="text-align:right;">₹${item.unitPrice}</td>
-                    <td style="text-align:right;">₹${item.total}</td>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th class="text-center">Qty</th>
+                    <th class="text-right">Price</th>
+                    <th class="text-right">Total</th>
                   </tr>
-                `
-                ).join("")}
-              </tbody>
-            </table>
-            <table class="summary-table">
-              <tr>
-                <td class="summary-label">Subtotal</td>
-                <td class="summary-value">₹${invoice.subtotal}</td>
-              </tr>
-              <tr>
-                <td class="summary-label">Tax</td>
-                <td class="summary-value">₹${invoice.tax}</td>
-              </tr>
-              <tr>
-                <td class="summary-label">Discount</td>
-                <td class="summary-value">₹${invoice.discount}</td>
-              </tr>
-              <tr>
-                <td class="summary-label">Total</td>
-                <td class="summary-value">₹${invoice.total}</td>
-              </tr>
-            </table>
-            <div style="clear: both;"></div>
-            <div class="hr"></div>
-            <div>
-              <span class="label">Status:</span>
-              <span class="status-badge status-${invoice.status.toLowerCase()}">${invoice.status}</span>
-            </div>
-            ${
-              invoice.notes
-                ? `<div class="notes-box"><b>Notes:</b> ${invoice.notes}</div>`
-                : ""
-            }
-            <div style="margin-top:30px;font-size:1.1rem;color:#344665;">
-              Thank you for choosing Vision Multispeciality Hospital.
+                </thead>
+                <tbody>
+                  ${invoice.items?.map(item => `
+                    <tr>
+                      <td>${item.description}</td>
+                      <td>${item.category}</td>
+                      <td class="text-center">${item.quantity}</td>
+                      <td class="text-right">₹${item.unitPrice.toFixed(2)}</td>
+                      <td class="text-right">₹${item.total.toFixed(2)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+
+              <div class="summary-section">
+                <div class="summary-row">
+                  <span>Subtotal</span>
+                  <span>₹${invoice.subtotal.toFixed(2)}</span>
+                </div>
+                <div class="summary-row">
+                  <span>Tax</span>
+                  <span>₹${invoice.tax.toFixed(2)}</span>
+                </div>
+                <div class="summary-row">
+                  <span>Discount</span>
+                  <span>-₹${invoice.discount.toFixed(2)}</span>
+                </div>
+                <div class="summary-row total">
+                  <span>Total</span>
+                  <span>₹${invoice.total.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div style="margin-top: 20px;">
+                <strong>Status:</strong>
+                <span class="status-badge status-${invoice.status.toLowerCase()}">${invoice.status}</span>
+              </div>
+
+              ${invoice.notes ? `
+                <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                  <div class="section-title">Terms and Conditions:</div>
+                  <div style="font-size: 14px; line-height: 1.6; color: #666;">
+                    ${invoice.notes}
+                  </div>
+                </div>
+              ` : `
+                <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                  <div class="section-title">Terms and Conditions:</div>
+                  <div style="font-size: 14px; line-height: 1.6; color: #666;">
+                    Payment is due within 30 days of invoice date. Late payments may incur additional charges. 
+                    For any queries regarding this invoice, please contact our billing department.
+                  </div>
+                </div>
+              `}
+
+              <div class="footer-section">
+                <div style="margin-bottom: 10px; font-size: 16px; color: #667eea; font-weight: 600;">
+                  Thank you for choosing Vision Multispeciality Hospital
+                </div>
+                <div>For support, contact us at 9766660572 or 9146383404</div>
+              </div>
             </div>
           </div>
+          
           <script>
             setTimeout(function() {
               window.print();
               window.close();
-            }, 400);
+            }, 500);
           </script>
         </body>
       </html>
