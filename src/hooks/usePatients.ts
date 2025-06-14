@@ -48,6 +48,14 @@ export function usePatients() {
   // Add new patient
   const addPatient = useMutation({
     mutationFn: async (input: Partial<Patient>) => {
+      let admissionDate = undefined;
+      if (typeof input.admissionDate === "string") {
+        // Already formatted as "YYYY-MM-DD"
+        admissionDate = input.admissionDate;
+      } else if (input.admissionDate instanceof Date) {
+        admissionDate = input.admissionDate.toISOString().slice(0, 10);
+      }
+
       const insertData = {
         full_name: input.fullName,
         age: input.age,
@@ -59,7 +67,7 @@ export function usePatients() {
         emergency_phone: input.emergencyPhone,
         blood_type: input.bloodType,
         allergies: input.allergies,
-        admission_date: input.admissionDate?.toISOString()?.slice(0,10),
+        admission_date: admissionDate,
         status: input.status,
         assigned_doctor_id: input.assignedDoctorId,
         assigned_room_id: input.assignedRoomId,

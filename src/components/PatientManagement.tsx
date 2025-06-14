@@ -14,6 +14,7 @@ import { Patient } from "@/types/hospital";
 import { usePatients } from "@/hooks/usePatients";
 import { supabase } from "@/integrations/supabase/client";
 import AllergyAutocomplete from "./AllergyAutocomplete";
+import { getLocalTodayDateString } from "@/lib/getLocalDateString";
 
 interface PatientManagementProps {
   userRole: "admin" | "doctor" | "staff";
@@ -108,6 +109,9 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       return;
     }
 
+    // Use today's date string in local time
+    const todayLocal = getLocalTodayDateString();
+
     const patient: Partial<Patient> = {
       fullName: newPatient.fullName,
       age: parseInt(newPatient.age),
@@ -121,7 +125,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       allergies: Array.isArray(newPatient.allergies)
         ? newPatient.allergies.filter((a: any) => !!a && typeof a === "string")
         : [],
-      admissionDate: new Date(),
+      admissionDate: todayLocal, // Pass today's date string
       status: "Admitted",
       assignedDoctorId: newPatient.assignedDoctorId || null,
       assignedRoomId: newPatient.assignedRoomId || null,
