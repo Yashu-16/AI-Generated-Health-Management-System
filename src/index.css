@@ -7,18 +7,18 @@
 
 @layer base {
   :root {
-    /* Hospital/Healthcare brand palette */
-    --background: 0 0% 100%;
-    --foreground: 226 60% 17%; /* deeper blue text */
+    /* Navy blue brand palette */
+    --background: 220 38% 18%; /* deep navy blue */
+    --foreground: 210 40% 98%; /* white/near white text */
 
-    --card: 0 0% 100%;
-    --card-foreground: 226 60% 17%;
+    --card: 220 38% 20%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 226 60% 17%;
+    --popover: 220 38% 19%;
+    --popover-foreground: 210 40% 98%;
 
-    /* Primary blue (hospital brand) */
-    --primary: 210 85% 46%;
+    /* Primary navy */
+    --primary: 220 60% 34%;     /* primary navy blue */
     --primary-foreground: 210 40% 98%;
 
     /* Gentle, complementary accent green */
@@ -26,51 +26,51 @@
     --accent-foreground: 210 40% 98%;
 
     /* Soft blue-gray for secondary UI */
-    --secondary: 216 34% 93%;
-    --secondary-foreground: 226 60% 17%;
+    --secondary: 220 16% 25%;
+    --secondary-foreground: 210 40% 98%;
 
     /* Muted for subtle backgrounds (e.g., inputs) */
-    --muted: 214 32% 92%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 220 16% 22%;
+    --muted-foreground: 215 20% 68%;
 
     /* Alert/destructive accent (warm coral red) */
     --destructive: 5 82% 62%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 216 34% 86%;
-    --input: 216 34% 86%;
-    --ring: 210 85% 46%;
+    --border: 220 16% 30%;
+    --input: 220 16% 30%;
+    --ring: 220 60% 38%;
 
     --radius: 0.5rem;
 
-    /* Sidebar palette (harmonized) */
-    --sidebar-background: 210 85% 46%;
+    /* Sidebar palette (harmonized to navy) */
+    --sidebar-background: 220 60% 26%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 210 85% 39%;
+    --sidebar-primary: 220 60% 34%;
     --sidebar-primary-foreground: 210 40% 98%;
     --sidebar-accent: 151 64% 48%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 216 34% 86%;
-    --sidebar-ring: 210 85% 46%;
+    --sidebar-border: 220 16% 30%;
+    --sidebar-ring: 220 60% 38%;
   }
 
   .dark {
-    --background: 226 60% 13%;
+    --background: 220 38% 11%;
     --foreground: 210 40% 98%;
 
-    --card: 226 60% 13%;
+    --card: 220 38% 14%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 226 60% 13%;
+    --popover: 220 38% 12%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 85% 56%;
+    --primary: 220 75% 32%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 223 20% 20%;
+    --secondary: 220 16% 18%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 223 20% 24%;
+    --muted: 220 16% 19%;
     --muted-foreground: 215 16% 75%;
 
     --accent: 151 64% 38%;
@@ -79,17 +79,17 @@
     --destructive: 5 62% 52%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 223 20% 24%;
-    --input: 223 20% 24%;
-    --ring: 210 85% 56%;
-    --sidebar-background: 210 85% 46%;
+    --border: 220 16% 23%;
+    --input: 220 16% 23%;
+    --ring: 220 60% 38%;
+    --sidebar-background: 220 60% 20%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 210 85% 39%;
+    --sidebar-primary: 220 60% 25%;
     --sidebar-primary-foreground: 210 40% 98%;
     --sidebar-accent: 151 64% 38%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 223 20% 24%;
-    --sidebar-ring: 210 85% 56%;
+    --sidebar-border: 220 16% 23%;
+    --sidebar-ring: 220 60% 38%;
   }
 }
 
