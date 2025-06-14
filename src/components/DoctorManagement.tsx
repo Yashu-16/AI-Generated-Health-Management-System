@@ -10,62 +10,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search, Plus, Edit, Stethoscope, Clock, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Doctor } from "@/types/hospital";
+import { useDoctors } from "@/hooks/useDoctors";
 
 interface DoctorManagementProps {
   userRole: "admin" | "doctor" | "staff";
 }
 
 const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
-  const [doctors, setDoctors] = useState<Doctor[]>([
-    {
-      id: "doc1",
-      fullName: "Dr. Sarah Johnson",
-      specialization: "Cardiology",
-      qualification: "MD, FACC",
-      experience: 15,
-      phone: "+1234567894",
-      email: "sarah.johnson@hospital.com",
-      department: "Cardiology",
-      schedule: {
-        monday: { start: "09:00", end: "17:00", available: true },
-        tuesday: { start: "09:00", end: "17:00", available: true },
-        wednesday: { start: "09:00", end: "17:00", available: true },
-        thursday: { start: "09:00", end: "17:00", available: true },
-        friday: { start: "09:00", end: "17:00", available: true },
-        saturday: { start: "09:00", end: "13:00", available: true },
-        sunday: { start: "00:00", end: "00:00", available: false }
-      },
-      consultationFee: 2000,
-      status: "Active",
-      maxPatientsPerDay: 20,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: "doc2",
-      fullName: "Dr. Michael Chen",
-      specialization: "Neurology",
-      qualification: "MD, PhD",
-      experience: 12,
-      phone: "+1234567895",
-      email: "michael.chen@hospital.com",
-      department: "Neurology",
-      schedule: {
-        monday: { start: "08:00", end: "16:00", available: true },
-        tuesday: { start: "08:00", end: "16:00", available: true },
-        wednesday: { start: "08:00", end: "16:00", available: true },
-        thursday: { start: "08:00", end: "16:00", available: true },
-        friday: { start: "08:00", end: "16:00", available: true },
-        saturday: { start: "00:00", end: "00:00", available: false },
-        sunday: { start: "00:00", end: "00:00", available: false }
-      },
-      consultationFee: 2500,
-      status: "Active",
-      maxPatientsPerDay: 15,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ]);
+  // Get doctors from Supabase
+  const { doctors, isLoading, error, addDoctor, refetch } = useDoctors();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("All");
@@ -76,6 +29,7 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
   const [editDoctor, setEditDoctor] = useState<Doctor | null>(null);
   const { toast } = useToast();
 
+  // Keep only local form state:
   const [newDoctor, setNewDoctor] = useState({
     fullName: "",
     specialization: "",
@@ -88,7 +42,8 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
     maxPatientsPerDay: ""
   });
 
-  const handleAddDoctor = () => {
+  // Add new doctor - now uses Supabase
+  const handleAddDoctor = async () => {
     if (!newDoctor.fullName || !newDoctor.specialization || !newDoctor.phone) {
       toast({
         title: "Error",
@@ -97,9 +52,7 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
       });
       return;
     }
-
-    const doctor: Doctor = {
-      id: `doc_${Date.now()}`,
+    const doctorPayload = {
       fullName: newDoctor.fullName,
       specialization: newDoctor.specialization,
       qualification: newDoctor.qualification,
@@ -123,25 +76,31 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
       updatedAt: new Date()
     };
 
-    setDoctors([...doctors, doctor]);
-    
-    toast({
-      title: "Doctor Added Successfully",
-      description: `${doctor.fullName} has been added to the ${doctor.department} department`,
-    });
-
-    setNewDoctor({
-      fullName: "",
-      specialization: "",
-      qualification: "",
-      experience: "",
-      phone: "",
-      email: "",
-      department: "",
-      consultationFee: "",
-      maxPatientsPerDay: ""
-    });
-    setShowAddDialog(false);
+    try {
+      await addDoctor.mutateAsync(doctorPayload);
+      toast({
+        title: "Doctor Added Successfully",
+        description: `${doctorPayload.fullName} has been added to the ${doctorPayload.department} department`,
+      });
+      setNewDoctor({
+        fullName: "",
+        specialization: "",
+        qualification: "",
+        experience: "",
+        phone: "",
+        email: "",
+        department: "",
+        consultationFee: "",
+        maxPatientsPerDay: ""
+      });
+      setShowAddDialog(false);
+    } catch (err: any) {
+      toast({
+        title: "Error adding doctor",
+        description: err.message || "Failed to add doctor",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleEditDoctor = () => {
