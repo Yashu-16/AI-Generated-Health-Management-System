@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, UserPlus, FileText, DollarSign, Bed, Activity, Calendar, TrendingUp } from "lucide-react";
+import { Users, UserPlus, FileText, IndianRupee, Bed, Activity, Calendar, TrendingUp } from "lucide-react";
 import PatientManagement from "@/components/PatientManagement";
 import DoctorManagement from "@/components/DoctorManagement";
 import MedicalRecords from "@/components/MedicalRecords";
@@ -14,17 +14,37 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [userRole] = useState<"admin" | "doctor" | "staff">("admin");
 
-  // Mock hospital stats
+  // Mock patients data for dashboard stats
+  const mockPatients = [
+    { id: "1", status: "Admitted", admissionDate: new Date("2024-06-10") },
+    { id: "2", status: "Stable", admissionDate: new Date("2024-06-11") },
+    { id: "3", status: "Critical", admissionDate: new Date("2024-06-12") },
+    { id: "4", status: "Discharged", admissionDate: new Date("2024-06-13") },
+    { id: "5", status: "Critical", admissionDate: new Date("2024-06-14") }
+  ];
+
+  // Mock invoices data for revenue calculation
+  const mockInvoices = [
+    { id: "1", total: 137500, status: "Paid" },
+    { id: "2", total: 72000, status: "Paid" },
+    { id: "3", total: 156000, status: "Pending" },
+    { id: "4", total: 89000, status: "Overdue" }
+  ];
+
+  // Calculate real stats from mock data
   const stats = {
-    totalPatients: 156,
-    admittedPatients: 89,
-    dischargedToday: 12,
+    totalPatients: mockPatients.length,
+    admittedPatients: mockPatients.filter(p => p.status === "Admitted" || p.status === "Stable").length,
+    dischargedToday: mockPatients.filter(p => 
+      p.status === "Discharged" && 
+      p.admissionDate.toDateString() === new Date().toDateString()
+    ).length,
     availableBeds: 34,
-    occupancyRate: 72,
-    totalRevenue: 125000,
-    monthlyRevenue: 87500,
+    occupancyRate: Math.round((mockPatients.filter(p => p.status !== "Discharged").length / 50) * 100),
+    totalRevenue: mockInvoices.filter(inv => inv.status === "Paid").reduce((sum, inv) => sum + inv.total, 0),
+    monthlyRevenue: mockInvoices.filter(inv => inv.status === "Paid").reduce((sum, inv) => sum + inv.total, 0) * 0.7,
     activeStaff: 45,
-    criticalPatients: 8
+    criticalPatients: mockPatients.filter(p => p.status === "Critical").length
   };
 
   const renderContent = () => {
@@ -60,7 +80,7 @@ const Index = () => {
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.totalPatients}</div>
                   <p className="text-xs text-muted-foreground">
-                    +12 from last month
+                    +{stats.admittedPatients} currently admitted
                   </p>
                 </CardContent>
               </Card>
@@ -79,12 +99,12 @@ const Index = () => {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <IndianRupee className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
+                  <div className="text-2xl font-bold">₹{stats.totalRevenue.toLocaleString('en-IN')}</div>
                   <p className="text-xs text-muted-foreground">
-                    +15% from last month
+                    ₹{Math.round(stats.monthlyRevenue).toLocaleString('en-IN')} this month
                   </p>
                 </CardContent>
               </Card>
@@ -156,7 +176,7 @@ const Index = () => {
                       className="justify-start"
                       onClick={() => setActiveTab("billing")}
                     >
-                      <DollarSign className="mr-2 h-4 w-4" />
+                      <IndianRupee className="mr-2 h-4 w-4" />
                       Generate Invoice
                     </Button>
                   </div>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, Edit, Stethoscope, Clock } from "lucide-react";
+import { Search, Plus, Edit, Stethoscope, Clock, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Doctor } from "@/types/hospital";
 
@@ -36,7 +35,7 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
         saturday: { start: "09:00", end: "13:00", available: true },
         sunday: { start: "00:00", end: "00:00", available: false }
       },
-      consultationFee: 200,
+      consultationFee: 2000,
       status: "Active",
       maxPatientsPerDay: 20,
       createdAt: new Date(),
@@ -60,7 +59,7 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
         saturday: { start: "00:00", end: "00:00", available: false },
         sunday: { start: "00:00", end: "00:00", available: false }
       },
-      consultationFee: 250,
+      consultationFee: 2500,
       status: "Active",
       maxPatientsPerDay: 15,
       createdAt: new Date(),
@@ -71,6 +70,10 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [editDoctor, setEditDoctor] = useState<Doctor | null>(null);
   const { toast } = useToast();
 
   const [newDoctor, setNewDoctor] = useState({
@@ -113,7 +116,7 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
         saturday: { start: "09:00", end: "13:00", available: true },
         sunday: { start: "00:00", end: "00:00", available: false }
       },
-      consultationFee: parseInt(newDoctor.consultationFee) || 150,
+      consultationFee: parseInt(newDoctor.consultationFee) || 1500,
       status: "Active",
       maxPatientsPerDay: parseInt(newDoctor.maxPatientsPerDay) || 20,
       createdAt: new Date(),
@@ -139,6 +142,34 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
       maxPatientsPerDay: ""
     });
     setShowAddDialog(false);
+  };
+
+  const handleEditDoctor = () => {
+    if (!editDoctor) return;
+
+    setDoctors(doctors.map(doctor => 
+      doctor.id === editDoctor.id 
+        ? { ...editDoctor, updatedAt: new Date() }
+        : doctor
+    ));
+    
+    toast({
+      title: "Doctor Updated",
+      description: `${editDoctor.fullName}'s information has been updated successfully`,
+    });
+    
+    setShowEditDialog(false);
+    setEditDoctor(null);
+  };
+
+  const handleViewDoctor = (doctor: Doctor) => {
+    setSelectedDoctor(doctor);
+    setShowViewDialog(true);
+  };
+
+  const handleEditClick = (doctor: Doctor) => {
+    setEditDoctor(doctor);
+    setShowEditDialog(true);
   };
 
   const filteredDoctors = doctors.filter(doctor => {
@@ -246,7 +277,7 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="consultationFee">Consultation Fee ($)</Label>
+                    <Label htmlFor="consultationFee">Consultation Fee (₹)</Label>
                     <Input
                       id="consultationFee"
                       type="number"
@@ -272,6 +303,138 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
           </Dialog>
         )}
       </div>
+
+      {/* Edit Doctor Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Doctor Information</DialogTitle>
+            <DialogDescription>Update doctor details</DialogDescription>
+          </DialogHeader>
+          {editDoctor && (
+            <div className="grid gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Full Name *</Label>
+                  <Input
+                    value={editDoctor.fullName}
+                    onChange={(e) => setEditDoctor({...editDoctor, fullName: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Specialization *</Label>
+                  <Input
+                    value={editDoctor.specialization}
+                    onChange={(e) => setEditDoctor({...editDoctor, specialization: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Phone *</Label>
+                  <Input
+                    value={editDoctor.phone}
+                    onChange={(e) => setEditDoctor({...editDoctor, phone: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    value={editDoctor.email}
+                    onChange={(e) => setEditDoctor({...editDoctor, email: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Department</Label>
+                  <Input
+                    value={editDoctor.department}
+                    onChange={(e) => setEditDoctor({...editDoctor, department: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Consultation Fee (₹)</Label>
+                  <Input
+                    type="number"
+                    value={editDoctor.consultationFee}
+                    onChange={(e) => setEditDoctor({...editDoctor, consultationFee: parseInt(e.target.value)})}
+                  />
+                </div>
+              </div>
+              <Button onClick={handleEditDoctor} className="w-full">
+                Update Doctor
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* View Doctor Dialog */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Doctor Profile</DialogTitle>
+            <DialogDescription>Doctor information details</DialogDescription>
+          </DialogHeader>
+          {selectedDoctor && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="font-semibold">Full Name</Label>
+                  <p>{selectedDoctor.fullName}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Specialization</Label>
+                  <p>{selectedDoctor.specialization}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="font-semibold">Qualification</Label>
+                  <p>{selectedDoctor.qualification}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Experience</Label>
+                  <p>{selectedDoctor.experience} years</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="font-semibold">Phone</Label>
+                  <p>{selectedDoctor.phone}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Email</Label>
+                  <p>{selectedDoctor.email}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="font-semibold">Department</Label>
+                  <p>{selectedDoctor.department}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Consultation Fee</Label>
+                  <p>₹{selectedDoctor.consultationFee}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="font-semibold">Max Patients/Day</Label>
+                  <p>{selectedDoctor.maxPatientsPerDay}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Status</Label>
+                  <Badge className={getStatusColor(selectedDoctor.status)}>
+                    {selectedDoctor.status}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -364,14 +527,25 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
                   <TableCell>{doctor.specialization}</TableCell>
                   <TableCell>{doctor.department}</TableCell>
                   <TableCell>{doctor.experience} years</TableCell>
-                  <TableCell>${doctor.consultationFee}</TableCell>
+                  <TableCell>₹{doctor.consultationFee}</TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(doctor.status)}>
                       {doctor.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="space-x-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewDoctor(doctor)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleEditClick(doctor)}
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -380,7 +554,7 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+      </Dialog>
     </div>
   );
 };

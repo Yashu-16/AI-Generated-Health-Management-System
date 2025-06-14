@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, Edit, UserCheck, AlertCircle } from "lucide-react";
+import { Search, Plus, Edit, UserCheck, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/types/hospital";
 
@@ -65,6 +65,8 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const { toast } = useToast();
 
@@ -82,6 +84,8 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
     medicalHistory: "",
     insuranceInfo: ""
   });
+
+  const [editPatient, setEditPatient] = useState<Patient | null>(null);
 
   const getAvailableRoom = () => {
     const availableRooms = ["room101", "room102", "room201", "room202", "room301"];
@@ -130,10 +134,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
 
     setPatients([...patients, patient]);
     
-    // Create blank medical record entry
     console.log(`Created blank medical record for patient ${patient.id}`);
-    
-    // Notify doctor via email (simulation)
     console.log(`Email notification sent to doctor ${assignedDoctor} about new patient ${patient.fullName}`);
     
     toast({
@@ -158,6 +159,34 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
     setShowAddDialog(false);
   };
 
+  const handleEditPatient = () => {
+    if (!editPatient) return;
+
+    setPatients(patients.map(patient => 
+      patient.id === editPatient.id 
+        ? { ...editPatient, updatedAt: new Date() }
+        : patient
+    ));
+    
+    toast({
+      title: "Patient Updated",
+      description: `${editPatient.fullName}'s information has been updated successfully`,
+    });
+    
+    setShowEditDialog(false);
+    setEditPatient(null);
+  };
+
+  const handleViewPatient = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setShowViewDialog(true);
+  };
+
+  const handleEditClick = (patient: Patient) => {
+    setEditPatient(patient);
+    setShowEditDialog(true);
+  };
+
   const handleDischarge = (patientId: string) => {
     setPatients(patients.map(patient => {
       if (patient.id === patientId) {
@@ -168,10 +197,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
           updatedAt: new Date()
         };
         
-        // Mark room as vacant
         console.log(`Room ${patient.assignedRoomId} marked as vacant`);
-        
-        // Generate and email invoice
         console.log(`Invoice generated and emailed to ${patient.email}`);
         
         toast({
@@ -354,6 +380,146 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
         )}
       </div>
 
+      {/* Edit Patient Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Patient Information</DialogTitle>
+            <DialogDescription>Update patient details</DialogDescription>
+          </DialogHeader>
+          {editPatient && (
+            <div className="grid gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Full Name *</Label>
+                  <Input
+                    value={editPatient.fullName}
+                    onChange={(e) => setEditPatient({...editPatient, fullName: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Age *</Label>
+                  <Input
+                    type="number"
+                    value={editPatient.age}
+                    onChange={(e) => setEditPatient({...editPatient, age: parseInt(e.target.value)})}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Phone *</Label>
+                  <Input
+                    value={editPatient.phone}
+                    onChange={(e) => setEditPatient({...editPatient, phone: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    value={editPatient.email || ""}
+                    onChange={(e) => setEditPatient({...editPatient, email: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Address</Label>
+                <Input
+                  value={editPatient.address}
+                  onChange={(e) => setEditPatient({...editPatient, address: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Medical History</Label>
+                <Textarea
+                  value={editPatient.medicalHistory}
+                  onChange={(e) => setEditPatient({...editPatient, medicalHistory: e.target.value})}
+                />
+              </div>
+              <Button onClick={handleEditPatient} className="w-full">
+                Update Patient
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* View Patient Dialog */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Patient Profile</DialogTitle>
+            <DialogDescription>Patient information details</DialogDescription>
+          </DialogHeader>
+          {selectedPatient && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="font-semibold">Full Name</Label>
+                  <p>{selectedPatient.fullName}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Age</Label>
+                  <p>{selectedPatient.age} years</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="font-semibold">Gender</Label>
+                  <p>{selectedPatient.gender}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Blood Type</Label>
+                  <p>{selectedPatient.bloodType}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="font-semibold">Phone</Label>
+                  <p>{selectedPatient.phone}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Email</Label>
+                  <p>{selectedPatient.email || "Not provided"}</p>
+                </div>
+              </div>
+              <div>
+                <Label className="font-semibold">Address</Label>
+                <p>{selectedPatient.address}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="font-semibold">Emergency Contact</Label>
+                  <p>{selectedPatient.emergencyContact}</p>
+                </div>
+                <div>
+                  <Label className="font-semibold">Emergency Phone</Label>
+                  <p>{selectedPatient.emergencyPhone}</p>
+                </div>
+              </div>
+              <div>
+                <Label className="font-semibold">Allergies</Label>
+                <p>{selectedPatient.allergies.length > 0 ? selectedPatient.allergies.join(", ") : "None"}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">Medical History</Label>
+                <p>{selectedPatient.medicalHistory || "None"}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">Current Status</Label>
+                <Badge className={getStatusColor(selectedPatient.status)}>
+                  {selectedPatient.status}
+                </Badge>
+              </div>
+              <div>
+                <Label className="font-semibold">Admission Date</Label>
+                <p>{selectedPatient.admissionDate.toLocaleDateString()}</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <Card>
         <CardHeader>
           <CardTitle>Patient List</CardTitle>
@@ -412,7 +578,18 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                   </TableCell>
                   <TableCell>{patient.admissionDate.toLocaleDateString()}</TableCell>
                   <TableCell className="space-x-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewPatient(patient)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleEditClick(patient)}
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
                     {patient.status !== "Discharged" && (userRole === "admin" || userRole === "doctor") && (

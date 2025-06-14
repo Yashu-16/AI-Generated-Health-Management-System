@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, DollarSign, FileText, CreditCard, TrendingUp, Printer, Barcode } from "lucide-react";
+import { Search, Plus, IndianRupee, FileText, User, TrendingUp, Barcode } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Invoice, InvoiceItem } from "@/types/hospital";
 
@@ -27,29 +27,29 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
         {
           description: "Cardiology Consultation",
           quantity: 1,
-          unitPrice: 200,
-          total: 200,
+          unitPrice: 2000,
+          total: 2000,
           category: "Consultation"
         },
         {
           description: "ECG Test",
           quantity: 1,
-          unitPrice: 150,
-          total: 150,
+          unitPrice: 1500,
+          total: 1500,
           category: "Lab Test"
         },
         {
           description: "Room Charge (Private Room)",
           quantity: 3,
-          unitPrice: 300,
-          total: 900,
+          unitPrice: 3000,
+          total: 9000,
           category: "Room Charge"
         }
       ],
-      subtotal: 1250,
-      tax: 125,
+      subtotal: 12500,
+      tax: 1250,
       discount: 0,
-      total: 1375,
+      total: 13750,
       status: "Pending",
       createdAt: new Date(),
       updatedAt: new Date()
@@ -64,22 +64,22 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
         {
           description: "Emergency Room Visit",
           quantity: 1,
-          unitPrice: 500,
-          total: 500,
+          unitPrice: 5000,
+          total: 5000,
           category: "Consultation"
         },
         {
           description: "Blood Work Panel",
           quantity: 1,
-          unitPrice: 200,
-          total: 200,
+          unitPrice: 2000,
+          total: 2000,
           category: "Lab Test"
         }
       ],
-      subtotal: 700,
-      tax: 70,
-      discount: 50,
-      total: 720,
+      subtotal: 7000,
+      tax: 700,
+      discount: 500,
+      total: 7200,
       status: "Paid",
       paymentMethod: "Credit Card",
       paymentDate: new Date("2024-06-12"),
@@ -116,7 +116,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   const generateUniqueBarcode = () => {
     const timestamp = Date.now();
     const random = Math.floor(Math.random() * 1000000);
-    return `${timestamp}${random}`.slice(-12); // 12 digit barcode
+    return `${timestamp}${random}`.slice(-12);
   };
 
   const handleAddItem = () => {
@@ -158,7 +158,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     }
 
     const subtotal = newInvoice.items.reduce((sum, item) => sum + item.total, 0);
-    const tax = subtotal * 0.1; // 10% tax
+    const tax = subtotal * 0.1;
     const total = subtotal + tax - newInvoice.discount;
 
     const invoice: Invoice = {
@@ -166,7 +166,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
       patientId: newInvoice.patientId,
       invoiceNumber: generateInvoiceNumber(),
       issueDate: new Date(),
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       items: newInvoice.items.map(item => ({
         description: item.description,
         quantity: item.quantity,
@@ -186,7 +186,6 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
 
     setInvoices([...invoices, invoice]);
     
-    // Send email notification (simulation)
     const patient = patients.find(p => p.id === newInvoice.patientId);
     console.log(`Invoice ${invoice.invoiceNumber} emailed to ${patient?.email}`);
     
@@ -216,73 +215,91 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             <title>Invoice ${invoice.invoiceNumber}</title>
             <style>
               body { font-family: Arial, sans-serif; margin: 20px; }
-              .header { text-align: center; margin-bottom: 20px; border: 1px solid #000; padding: 15px; }
-              .invoice-details { margin: 20px 0; }
+              .header { text-align: center; margin-bottom: 30px; border: 2px solid #000; padding: 20px; background-color: #f8f9fa; }
+              .hospital-name { font-size: 28px; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
+              .hospital-info { font-size: 14px; color: #666; line-height: 1.5; }
+              .invoice-details { margin: 20px 0; padding: 15px; border: 1px solid #ddd; background-color: #f9f9f9; }
               .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-              .items-table th, .items-table td { border: 1px solid #000; padding: 8px; text-align: left; }
-              .items-table th { background-color: #f0f0f0; }
-              .totals { margin-top: 20px; text-align: right; }
-              .barcode-section { margin: 30px 0; text-align: center; border: 1px solid #000; padding: 20px; }
-              .barcode { font-family: 'Courier New', monospace; font-size: 24px; letter-spacing: 3px; margin: 10px 0; }
-              .barcode-lines { font-family: 'Courier New', monospace; font-size: 48px; }
+              .items-table th, .items-table td { border: 1px solid #000; padding: 10px; text-align: left; }
+              .items-table th { background-color: #e9ecef; font-weight: bold; }
+              .totals { margin-top: 20px; text-align: right; border: 1px solid #ddd; padding: 15px; }
+              .barcode-section { margin: 30px 0; text-align: center; border: 2px solid #000; padding: 25px; background-color: #f8f9fa; }
+              .barcode { font-family: 'Courier New', monospace; font-size: 18px; letter-spacing: 2px; margin: 15px 0; font-weight: bold; }
+              .barcode-visual { font-family: 'Courier New', monospace; font-size: 36px; letter-spacing: 1px; color: #000; }
+              .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
             </style>
           </head>
           <body>
             <div class="header">
-              <h1>VISION MULTISPECIALITY HOSPITAL</h1>
-              <p>Moshi-Chikhali Near RKH Blessings, Moshi,Pune -412105</p>
-              <p>📞 9766660572/9146383404</p>
+              <div class="hospital-name">VISION MULTISPECIALITY HOSPITAL</div>
+              <div class="hospital-info">
+                <strong>Address:</strong> Moshi-Chikhali Near RKH Blessings, Moshi, Pune - 412105<br>
+                <strong>Contact:</strong> 📞 9766660572 / 9146383404<br>
+                <strong>Email:</strong> info@visionhospital.com
+              </div>
             </div>
             
             <div class="invoice-details">
-              <h2>INVOICE</h2>
-              <p><strong>Invoice Number:</strong> ${invoice.invoiceNumber}</p>
-              <p><strong>Patient:</strong> ${patient?.name}</p>
-              <p><strong>Issue Date:</strong> ${invoice.issueDate.toLocaleDateString()}</p>
-              <p><strong>Due Date:</strong> ${invoice.dueDate.toLocaleDateString()}</p>
+              <h2 style="margin-top: 0;">MEDICAL INVOICE</h2>
+              <div style="display: flex; justify-content: space-between;">
+                <div>
+                  <p><strong>Invoice Number:</strong> ${invoice.invoiceNumber}</p>
+                  <p><strong>Patient Name:</strong> ${patient?.name}</p>
+                  <p><strong>Issue Date:</strong> ${invoice.issueDate.toLocaleDateString('en-IN')}</p>
+                </div>
+                <div>
+                  <p><strong>Due Date:</strong> ${invoice.dueDate.toLocaleDateString('en-IN')}</p>
+                  <p><strong>Status:</strong> ${invoice.status}</p>
+                </div>
+              </div>
             </div>
             
             <table class="items-table">
               <thead>
                 <tr>
+                  <th>S.No.</th>
                   <th>Description</th>
                   <th>Category</th>
                   <th>Quantity</th>
-                  <th>Unit Price</th>
-                  <th>Total</th>
+                  <th>Unit Price (₹)</th>
+                  <th>Total (₹)</th>
                 </tr>
               </thead>
               <tbody>
-                ${invoice.items.map(item => `
+                ${invoice.items.map((item, index) => `
                   <tr>
+                    <td>${index + 1}</td>
                     <td>${item.description}</td>
                     <td>${item.category}</td>
                     <td>${item.quantity}</td>
-                    <td>$${item.unitPrice.toFixed(2)}</td>
-                    <td>$${item.total.toFixed(2)}</td>
+                    <td>₹${item.unitPrice.toLocaleString('en-IN')}</td>
+                    <td>₹${item.total.toLocaleString('en-IN')}</td>
                   </tr>
                 `).join('')}
               </tbody>
             </table>
             
             <div class="totals">
-              <p><strong>Subtotal: $${invoice.subtotal.toFixed(2)}</strong></p>
-              <p><strong>Tax: $${invoice.tax.toFixed(2)}</strong></p>
-              <p><strong>Discount: -$${invoice.discount.toFixed(2)}</strong></p>
-              <p style="font-size: 18px;"><strong>Total: $${invoice.total.toFixed(2)}</strong></p>
+              <div style="margin-bottom: 8px;"><strong>Subtotal: ₹${invoice.subtotal.toLocaleString('en-IN')}</strong></div>
+              <div style="margin-bottom: 8px;"><strong>Tax (10%): ₹${invoice.tax.toLocaleString('en-IN')}</strong></div>
+              <div style="margin-bottom: 8px;"><strong>Discount: -₹${invoice.discount.toLocaleString('en-IN')}</strong></div>
+              <div style="font-size: 20px; border-top: 2px solid #000; padding-top: 10px; margin-top: 10px;">
+                <strong>TOTAL AMOUNT: ₹${invoice.total.toLocaleString('en-IN')}</strong>
+              </div>
             </div>
             
             <div class="barcode-section">
-              <h3>INVOICE BARCODE</h3>
-              <div class="barcode-lines">||||  |||| |  ||||||  |||| |  |  ||||||||  ||</div>
+              <h3 style="margin-top: 0;">INVOICE BARCODE</h3>
+              <div class="barcode-visual">|||| ||| || |||||| ||| | |||||| ||</div>
               <div class="barcode">${barcode}</div>
-              <p style="font-size: 12px;">Scan this barcode to access invoice details</p>
+              <p style="font-size: 12px; margin-bottom: 0;">Scan this barcode to access invoice details digitally</p>
             </div>
             
-            ${invoice.notes ? `<div style="margin-top: 20px;"><p><strong>Notes:</strong> ${invoice.notes}</p></div>` : ''}
+            ${invoice.notes ? `<div style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; background-color: #f9f9f9;"><p><strong>Notes:</strong> ${invoice.notes}</p></div>` : ''}
             
-            <div style="margin-top: 30px; text-align: center; font-size: 12px;">
-              <p>Thank you for choosing Vision Multispeciality Hospital</p>
+            <div class="footer">
+              <p><strong>Thank you for choosing Vision Multispeciality Hospital</strong></p>
+              <p>For any queries, please contact us at the above mentioned contact details</p>
             </div>
           </body>
         </html>
@@ -290,7 +307,6 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
       printWindow.document.close();
       printWindow.print();
       
-      // Store barcode for future reference
       console.log(`Invoice ${invoice.invoiceNumber} generated with barcode: ${barcode}`);
       
       toast({
@@ -420,24 +436,25 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                         <Input
                           type="number"
                           value={item.quantity}
-                          onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 0)}
+                          onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)}
                           min="1"
                         />
                       </div>
                       <div className="col-span-2">
-                        <Label>Unit Price</Label>
+                        <Label>Unit Price (₹)</Label>
                         <Input
                           type="number"
-                          value={item.unitPrice}
+                          value={item.unitPrice || ""}
                           onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
                           min="0"
                           step="0.01"
+                          placeholder="0"
                         />
                       </div>
                       <div className="col-span-1">
                         <Label>Total</Label>
                         <div className="p-2 bg-gray-50 rounded text-sm font-medium">
-                          ${item.total.toFixed(2)}
+                          ₹{item.total.toLocaleString('en-IN')}
                         </div>
                       </div>
                       <div className="col-span-1">
@@ -458,7 +475,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="discount">Discount ($)</Label>
+                    <Label htmlFor="discount">Discount (₹)</Label>
                     <Input
                       id="discount"
                       type="number"
@@ -483,19 +500,19 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
-                      <span>${newInvoice.items.reduce((sum, item) => sum + item.total, 0).toFixed(2)}</span>
+                      <span>₹{newInvoice.items.reduce((sum, item) => sum + item.total, 0).toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Tax (10%):</span>
-                      <span>${(newInvoice.items.reduce((sum, item) => sum + item.total, 0) * 0.1).toFixed(2)}</span>
+                      <span>₹{(newInvoice.items.reduce((sum, item) => sum + item.total, 0) * 0.1).toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Discount:</span>
-                      <span>-${newInvoice.discount.toFixed(2)}</span>
+                      <span>-₹{newInvoice.discount.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between font-bold text-lg border-t pt-2">
                       <span>Total:</span>
-                      <span>${(newInvoice.items.reduce((sum, item) => sum + item.total, 0) * 1.1 - newInvoice.discount).toFixed(2)}</span>
+                      <span>₹{(newInvoice.items.reduce((sum, item) => sum + item.total, 0) * 1.1 - newInvoice.discount).toLocaleString('en-IN')}</span>
                     </div>
                   </div>
                 </div>
@@ -518,10 +535,10 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
+            <IndianRupee className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold">₹{totalRevenue.toLocaleString('en-IN')}</div>
           </CardContent>
         </Card>
         <Card>
@@ -530,16 +547,16 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             <FileText className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${pendingAmount.toLocaleString()}</div>
+            <div className="text-2xl font-bold">₹{pendingAmount.toLocaleString('en-IN')}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Overdue Invoices</CardTitle>
-            <CreditCard className="h-4 w-4 text-red-600" />
+            <User className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${overdueAmount.toLocaleString()}</div>
+            <div className="text-2xl font-bold">₹{overdueAmount.toLocaleString('en-IN')}</div>
           </CardContent>
         </Card>
         <Card>
@@ -605,9 +622,9 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
                     <TableCell>{patient?.name}</TableCell>
-                    <TableCell>{invoice.issueDate.toLocaleDateString()}</TableCell>
-                    <TableCell>{invoice.dueDate.toLocaleDateString()}</TableCell>
-                    <TableCell>${invoice.total.toFixed(2)}</TableCell>
+                    <TableCell>{invoice.issueDate.toLocaleDateString('en-IN')}</TableCell>
+                    <TableCell>{invoice.dueDate.toLocaleDateString('en-IN')}</TableCell>
+                    <TableCell>₹{invoice.total.toLocaleString('en-IN')}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(invoice.status)}>
                         {invoice.status}
@@ -619,7 +636,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                         size="sm"
                         onClick={() => printInvoiceWithBarcode(invoice)}
                       >
-                        <Printer className="h-4 w-4" />
+                        <Barcode className="h-4 w-4" />
                       </Button>
                       <Dialog>
                         <DialogTrigger asChild>
@@ -655,7 +672,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                                   {selectedInvoice.items.map((item, index) => (
                                     <div key={index} className="flex justify-between p-2 bg-gray-50 rounded">
                                       <span>{item.description} (x{item.quantity})</span>
-                                      <span>${item.total.toFixed(2)}</span>
+                                      <span>₹{item.total.toLocaleString('en-IN')}</span>
                                     </div>
                                   ))}
                                 </div>
@@ -665,19 +682,19 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                                 <div className="space-y-2">
                                   <div className="flex justify-between">
                                     <span>Subtotal:</span>
-                                    <span>${selectedInvoice.subtotal.toFixed(2)}</span>
+                                    <span>₹{selectedInvoice.subtotal.toLocaleString('en-IN')}</span>
                                   </div>
                                   <div className="flex justify-between">
                                     <span>Tax:</span>
-                                    <span>${selectedInvoice.tax.toFixed(2)}</span>
+                                    <span>₹{selectedInvoice.tax.toLocaleString('en-IN')}</span>
                                   </div>
                                   <div className="flex justify-between">
                                     <span>Discount:</span>
-                                    <span>-${selectedInvoice.discount.toFixed(2)}</span>
+                                    <span>-₹{selectedInvoice.discount.toLocaleString('en-IN')}</span>
                                   </div>
                                   <div className="flex justify-between font-bold text-lg border-t pt-2">
                                     <span>Total:</span>
-                                    <span>${selectedInvoice.total.toFixed(2)}</span>
+                                    <span>₹{selectedInvoice.total.toLocaleString('en-IN')}</span>
                                   </div>
                                 </div>
                               </div>
