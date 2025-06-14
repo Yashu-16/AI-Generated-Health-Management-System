@@ -20,6 +20,8 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
   // Get doctors from Supabase
   const { doctors, isLoading, error, addDoctor, refetch } = useDoctors();
 
+  const doctorsList = doctors ?? [];
+
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -70,7 +72,7 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
         sunday: { start: "00:00", end: "00:00", available: false }
       },
       consultationFee: parseInt(newDoctor.consultationFee) || 1500,
-      status: "Active",
+      status: "Active" as "Active", // Ensures correct type
       maxPatientsPerDay: parseInt(newDoctor.maxPatientsPerDay) || 20,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -103,20 +105,13 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
     }
   };
 
+  // Remove setDoctors and local update logic for handleEditDoctor for now
   const handleEditDoctor = () => {
-    if (!editDoctor) return;
-
-    setDoctors(doctors.map(doctor => 
-      doctor.id === editDoctor.id 
-        ? { ...editDoctor, updatedAt: new Date() }
-        : doctor
-    ));
-    
     toast({
-      title: "Doctor Updated",
-      description: `${editDoctor.fullName}'s information has been updated successfully`,
+      title: "Update doctor not currently implemented",
+      description: "Doctor profiles can be edited in a future version.",
+      variant: "destructive"
     });
-    
     setShowEditDialog(false);
     setEditDoctor(null);
   };
@@ -131,7 +126,7 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
     setShowEditDialog(true);
   };
 
-  const filteredDoctors = doctors.filter(doctor => {
+  const filteredDoctors = doctorsList.filter(doctor => {
     const matchesSearch = doctor.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = departmentFilter === "All" || doctor.department === departmentFilter;
@@ -147,7 +142,7 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
     }
   };
 
-  const departments = [...new Set(doctors.map(doctor => doctor.department))];
+  const departments = [...new Set(doctorsList.map(doctor => doctor.department))].filter(Boolean);
 
   return (
     <div className="space-y-6">
@@ -402,7 +397,7 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
             <Stethoscope className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{doctors.length}</div>
+            <div className="text-2xl font-bold">{doctorsList.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -411,7 +406,7 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
             <Stethoscope className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{doctors.filter(d => d.status === "Active").length}</div>
+            <div className="text-2xl font-bold">{doctorsList.filter(d => d.status === "Active").length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -430,7 +425,7 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round(doctors.reduce((sum, d) => sum + d.experience, 0) / doctors.length)}yr
+              {Math.round(doctorsList.reduce((sum, d) => sum + d.experience, 0) / doctorsList.length)}yr
             </div>
           </CardContent>
         </Card>
