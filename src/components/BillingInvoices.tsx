@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,12 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, Edit, FileText, Printer } from "lucide-react"; // Only import used icons
+import { Textarea } from "@/components/ui/textarea";
+import { Search, Plus, Edit, FileText, Printer, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Invoice } from "@/types/hospital";
+import { Invoice, InvoiceItem } from "@/types/hospital";
 import { useInvoices } from "@/hooks/useInvoices";
 import { usePatientNames } from "@/hooks/usePatientNames";
-import { useNavigate } from "react-router-dom";
+import InvoiceItemsEditor from "@/components/InvoiceItemsEditor";
+import { format } from "date-fns";
+import { useMemo } from "react";
 
 // Define the allowed statuses for Invoice status field
 type InvoiceStatus = "Pending" | "Paid" | "Overdue" | "Cancelled";
@@ -22,16 +24,100 @@ interface BillingInvoicesProps {
   userRole: "admin" | "doctor" | "staff";
 }
 
+const defaultItem: InvoiceItem = {
+  description: "",
+  category: "Consultation",
+  quantity: 1,
+  unitPrice: 0,
+  total: 0,
+};
+
 const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
-  const { invoices, isLoading, error, updateInvoice, refetch } = useInvoices();
+  const { invoices, isLoading, error, updateInvoice, addInvoice, refetch } = useInvoices();
+  const { data: patients, isLoading: patientsLoading } = usePatientNames();
+
+  // Create invoice form state
+  const [patientId, setPatientId] = useState("");
+  const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [issueDate, setIssueDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [dueDate, setDueDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [items, setItems] = useState<InvoiceItem[]>([{ ...defaultItem }]);
+  const [tax, setTax] = useState<number>(0);
+  const [discount, setDiscount] = useState<number>(0);
+  const [status, setStatus] = useState<"Pending" | "Paid" | "Overdue" | "Cancelled">("Pending");
+  const [paymentMethod, setPaymentMethod] = useState<string>("");
+  const [paymentDate, setPaymentDate] = useState<string>("");
+  const [notes, setNotes] = useState<string>("");
+
+  // Calculated values for create form
+  const subtotal = useMemo(() =>
+    items.reduce((sum, item) => sum + Number(item.total ?? 0), 0)
+  , [items]);
+
+  const total = useMemo(() =>
+    Math.max(subtotal + Number(tax) - Number(discount), 0)
+  , [subtotal, tax, discount]);
+
+  const resetCreateForm = () => {
+    setPatientId("");
+    setInvoiceNumber("");
+    setIssueDate(format(new Date(), "yyyy-MM-dd"));
+    setDueDate(format(new Date(), "yyyy-MM-dd"));
+    setItems([{ ...defaultItem }]);
+    setTax(0);
+    setDiscount(0);
+    setStatus("Pending");
+    setPaymentMethod("");
+    setPaymentDate("");
+    setNotes("");
+  };
+
+  const handleCreateInvoice = () => {
+    setShowCreateForm(true);
+    resetCreateForm();
+  };
+
+  const handleSubmitCreateForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!patientId || !invoiceNumber || !issueDate || !dueDate || items.length === 0) {
+      toast({ title: "Please fill in all required fields.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      await addInvoice.mutateAsync({
+        patientId,
+        invoiceNumber,
+        issueDate: new Date(issueDate),
+        dueDate: new Date(dueDate),
+        items,
+        subtotal,
+        tax,
+        discount,
+        total,
+        status,
+        paymentMethod: paymentMethod || undefined,
+        paymentDate: paymentDate ? new Date(paymentDate) : undefined,
+        notes,
+      });
+      toast({
+        title: "Invoice created!",
+        description: `Invoice ${invoiceNumber} has been saved successfully.`,
+      });
+      setShowCreateForm(false);
+      resetCreateForm();
+    } catch (err: any) {
+      toast({ title: "Failed to create invoice", description: err?.message, variant: "destructive" });
+    }
+  };
 
   const handleEditInvoice = async (invoice: Invoice) => {
     setSelectedInvoice(invoice);
@@ -63,7 +149,6 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   };
 
   const handlePrintInvoice = (invoice: Invoice) => {
-    // Enhanced: Hospital header per provided sample, rest as before
     const printWindow = window.open("", "_blank", "width=800,height=1040");
     if (!printWindow) return;
 
@@ -214,6 +299,170 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     }
   };
 
+  if (showCreateForm) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4">
+          <Button 
+            onClick={() => setShowCreateForm(false)} 
+            variant="outline"
+            size="sm"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Invoices
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Create New Invoice</h1>
+            <p className="text-muted-foreground">Fill in the details to create a new invoice</p>
+          </div>
+        </div>
+
+        <Card className="max-w-4xl">
+          <CardContent className="pt-6">
+            <form className="space-y-6" onSubmit={handleSubmitCreateForm}>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="patient">Patient *</Label>
+                  <Select
+                    value={patientId}
+                    onValueChange={setPatientId}
+                    disabled={patientsLoading}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={patientsLoading ? "Loading..." : "Select a patient"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {patients?.map(pt => (
+                        <SelectItem key={pt.id} value={pt.id}>{pt.fullName}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="invoiceNumber">Invoice Number *</Label>
+                  <Input
+                    id="invoiceNumber"
+                    value={invoiceNumber}
+                    onChange={e => setInvoiceNumber(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="issueDate">Issue Date *</Label>
+                  <Input
+                    id="issueDate"
+                    type="date"
+                    value={issueDate}
+                    onChange={e => setIssueDate(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="dueDate">Due Date *</Label>
+                  <Input
+                    id="dueDate"
+                    type="date"
+                    value={dueDate}
+                    onChange={e => setDueDate(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Invoice Items *</Label>
+                <InvoiceItemsEditor items={items} setItems={setItems} />
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
+                <div>
+                  <Label htmlFor="subtotal">Subtotal</Label>
+                  <Input id="subtotal" value={subtotal} disabled readOnly />
+                </div>
+                <div>
+                  <Label htmlFor="tax">Tax</Label>
+                  <Input
+                    id="tax"
+                    type="number"
+                    min={0}
+                    value={tax}
+                    onChange={e => setTax(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="discount">Discount</Label>
+                  <Input
+                    id="discount"
+                    type="number"
+                    min={0}
+                    value={discount}
+                    onChange={e => setDiscount(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="total">Total</Label>
+                  <Input id="total" value={total} disabled readOnly />
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select value={status} onValueChange={v => setStatus(v as any)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Paid">Paid</SelectItem>
+                      <SelectItem value="Overdue">Overdue</SelectItem>
+                      <SelectItem value="Cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="paymentMethod">Payment Method</Label>
+                  <Input
+                    id="paymentMethod"
+                    value={paymentMethod}
+                    onChange={e => setPaymentMethod(e.target.value)}
+                    placeholder="(optional)"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="paymentDate">Payment Date</Label>
+                  <Input
+                    id="paymentDate"
+                    type="date"
+                    value={paymentDate}
+                    onChange={e => setPaymentDate(e.target.value)}
+                    placeholder="(optional)"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={notes}
+                  onChange={e => setNotes(e.target.value)}
+                  placeholder="Add any notes (optional)..."
+                />
+              </div>
+              <div className="flex gap-4">
+                <Button type="submit" className="flex-1">Create Invoice</Button>
+                <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -223,7 +472,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
         </div>
         {(userRole === "admin" || userRole === "staff") && (
           <Button 
-            onClick={() => navigate("/billing/create")} 
+            onClick={handleCreateInvoice} 
             className="justify-start h-12"
             variant="outline"
           >
