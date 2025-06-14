@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,25 +29,29 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       {/* Header */}
-      <div className="bg-[#102042] text-primary-foreground rounded-t-xl shadow-lg">
-        <div className="container mx-auto px-4 py-4">
+      <div className="bg-white rounded-t-xl shadow-lg">
+        <div className="container mx-auto px-4 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="bg-white p-2 rounded-full">
-                <Stethoscope className="h-8 w-8 text-primary" />
+              <div className="bg-[#102042] p-2 rounded-full">
+                <Stethoscope className="h-10 w-10 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">VISION MULTISPECIALITY HOSPITAL</h1>
-                <p className="text-primary-foreground/80 text-white/90">Healthcare Management System</p>
+                <h1 className="text-3xl md:text-4xl font-extrabold text-[#102042] tracking-tight">
+                  VISION MULTISPECIALITY HOSPITAL
+                </h1>
+                <p className="text-lg font-medium text-[#102042] mt-0.5">
+                  Healthcare Management System
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <Badge variant="secondary" className="rounded-full font-bold text-black px-6 py-1 text-lg bg-white">
                 Admin
               </Badge>
-              <Button variant="ghost" onClick={handleLogout} className="text-white hover:bg-white/10 transition">
+              <Button variant="ghost" onClick={handleLogout} className="text-[#102042] hover:bg-[#102042]/10 transition">
                 <LogOut className="h-4 w-4 mr-2" />
-                <span className="text-white">Logout</span>
+                <span className="text-[#102042]">Logout</span>
               </Button>
             </div>
           </div>
