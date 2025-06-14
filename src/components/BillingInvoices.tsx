@@ -12,6 +12,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Invoice } from "@/types/hospital";
 import { useInvoices } from "@/hooks/useInvoices";
 
+// Define the allowed statuses for Invoice status field
+type InvoiceStatus = "Pending" | "Paid" | "Overdue" | "Cancelled";
+
 interface BillingInvoicesProps {
   userRole: "admin" | "doctor" | "staff";
 }
@@ -26,7 +29,8 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
 
   const { invoices, isLoading, error, addInvoice, updateInvoice, refetch } = useInvoices();
 
-  const [newInvoice, setNewInvoice] = useState({
+  // Ensures status is always type-safe
+  const [newInvoice, setNewInvoice] = useState<Omit<Invoice, "id" | "createdAt" | "updatedAt">>({
     patientId: "",
     invoiceNumber: "",
     issueDate: new Date(),
@@ -54,8 +58,10 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     }
 
     try {
+      // Make sure status is explicitly one of the allowed values (should always be by type)
       await addInvoice.mutateAsync({
         ...newInvoice,
+        status: newInvoice.status as InvoiceStatus,
         issueDate: newInvoice.issueDate,
         dueDate: newInvoice.dueDate,
       });
