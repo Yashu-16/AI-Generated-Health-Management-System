@@ -188,6 +188,25 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
     }
   };
 
+  // Delete patient handler
+  const handleDeletePatient = async (patientId: string) => {
+    if (!window.confirm("Are you sure you want to delete this patient? This cannot be undone.")) return;
+    try {
+      await updatePatient.mutateAsync({ ...patients?.find(p => p.id === patientId), status: "Inactive", updatedAt: new Date() });
+      toast({
+        title: "Patient Deleted",
+        description: `Patient has been marked as inactive.`,
+      });
+      refetch();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   // Patient filtering from Supabase data
   const filteredPatients = (patients ?? []).filter(patient => {
     const matchesSearch = patient.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -632,6 +651,23 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                         <UserCheck className="h-4 w-4" />
                       </Button>
                     )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeletePatient(patient.id)}
+                      className="border border-[#102042] text-[#102042] hover:bg-[#102042]/10"
+                      title="Delete Patient"
+                    >
+                      <span className="sr-only">Delete</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                        <span>Delete</span>
+                        <span>
+                          <svg width="18" height="18" fill="none" stroke="#102042" strokeWidth="2" viewBox="0 0 24 24">
+                            <use href="#lucide-delete" />
+                          </svg>
+                        </span>
+                      </span>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

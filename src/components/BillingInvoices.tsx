@@ -80,6 +80,21 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     setNewInvoice({ ...newInvoice, items: updatedItems });
   };
 
+  // Add the delete handler
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    if (!window.confirm("Are you sure you want to delete this invoice? This cannot be undone.")) return;
+    try {
+      await updateInvoice.mutateAsync({ ...invoices?.find(inv => inv.id === invoiceId), status: "Cancelled", updatedAt: new Date() });
+      toast({
+        title: "Invoice Deleted",
+        description: `Invoice has been marked as cancelled.`,
+      });
+      refetch();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
   // CREATE INVOICE - Supabase
   const handleCreateInvoice = async () => {
     if (!newInvoice.patientId || newInvoice.items.some(item => !item.description)) {
@@ -710,6 +725,23 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                         onClick={() => handleStartEdit(invoice)}
                       >
                         Edit
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteInvoice(invoice.id)}
+                        className="border border-[#102042] text-[#102042] hover:bg-[#102042]/10"
+                        title="Delete Invoice"
+                      >
+                        <span className="sr-only">Delete</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                          <span>Delete</span>
+                          <span>
+                            <svg width="18" height="18" fill="none" stroke="#102042" strokeWidth="2" viewBox="0 0 24 24">
+                              <use href="#lucide-delete" />
+                            </svg>
+                          </span>
+                        </span>
                       </Button>
                     </TableCell>
                   </TableRow>

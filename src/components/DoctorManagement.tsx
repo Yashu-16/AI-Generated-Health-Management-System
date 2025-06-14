@@ -127,6 +127,24 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
     setShowEditDialog(true);
   };
 
+  const handleDeleteDoctor = async (doctorId: string) => {
+    if (!window.confirm("Are you sure you want to delete this doctor? This cannot be undone.")) return;
+    try {
+      await updateDoctor.mutateAsync({ ...doctors?.find(d => d.id === doctorId), status: "Inactive", updatedAt: new Date() });
+      toast({
+        title: "Doctor Deleted",
+        description: `Doctor has been marked as inactive.`,
+      });
+      refetch();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   const filteredDoctors = doctorsList.filter(doctor => {
     const matchesSearch = doctor.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase());
@@ -543,6 +561,23 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
                       onClick={() => handleEditClick(doctor)}
                     >
                       <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDeleteDoctor(doctor.id)}
+                      className="border border-[#102042] text-[#102042] hover:bg-[#102042]/10"
+                      title="Delete Doctor"
+                    >
+                      <span className="sr-only">Delete</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                        <span>Delete</span>
+                        <span>
+                          <svg width="18" height="18" fill="none" stroke="#102042" strokeWidth="2" viewBox="0 0 24 24">
+                            <use href="#lucide-delete" />
+                          </svg>
+                        </span>
+                      </span>
                     </Button>
                   </TableCell>
                 </TableRow>

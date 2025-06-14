@@ -412,6 +412,24 @@ const FaceSheet = ({ userRole }: FaceSheetProps) => {
     }
   };
 
+  const handleDeleteFaceSheet = async (faceSheetId: string) => {
+    if (!window.confirm("Are you sure you want to delete this face sheet? This cannot be undone.")) return;
+    try {
+      await deleteFaceSheet.mutateAsync(faceSheetId);
+      toast({
+        title: "Face Sheet Deleted",
+        description: `Face sheet has been deleted.`,
+      });
+      refetch();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   const filteredFaceSheets = faceSheets.filter(sheet => 
     sheet.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     sheet.prnNo.includes(searchTerm) ||
@@ -679,25 +697,25 @@ const FaceSheet = ({ userRole }: FaceSheetProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredFaceSheets.map((sheet) => (
-                <TableRow key={sheet.id}>
-                  <TableCell className="font-medium">{sheet.patientName}</TableCell>
-                  <TableCell>{sheet.prnNo}</TableCell>
-                  <TableCell>{sheet.ipdNo}</TableCell>
-                  <TableCell>{sheet.age}/{sheet.sex}</TableCell>
-                  <TableCell>{sheet.dateOfAdmission.toLocaleDateString()}</TableCell>
-                  <TableCell>{sheet.consultantDoctor}</TableCell>
+              {filteredFaceSheets.map((faceSheet) => (
+                <TableRow key={faceSheet.id}>
+                  <TableCell className="font-medium">{faceSheet.patientName}</TableCell>
+                  <TableCell>{faceSheet.prnNo}</TableCell>
+                  <TableCell>{faceSheet.ipdNo}</TableCell>
+                  <TableCell>{faceSheet.age}/{faceSheet.sex}</TableCell>
+                  <TableCell>{faceSheet.dateOfAdmission.toLocaleDateString()}</TableCell>
+                  <TableCell>{faceSheet.consultantDoctor}</TableCell>
                   <TableCell className="space-x-2">
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => printFaceSheet(sheet)}
+                      onClick={() => printFaceSheet(faceSheet)}
                     >
                       <Printer className="h-4 w-4" />
                     </Button>
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" onClick={() => setSelectedFaceSheet(sheet)}>
+                        <Button variant="outline" size="sm" onClick={() => setSelectedFaceSheet(faceSheet)}>
                           <FileText className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
@@ -728,6 +746,23 @@ const FaceSheet = ({ userRole }: FaceSheetProps) => {
                         )}
                       </DialogContent>
                     </Dialog>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteFaceSheet(faceSheet.id)}
+                      className="border border-[#102042] text-[#102042] hover:bg-[#102042]/10"
+                      title="Delete Face Sheet"
+                    >
+                      <span className="sr-only">Delete</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                        <span>Delete</span>
+                        <span>
+                          <svg width="18" height="18" fill="none" stroke="#102042" strokeWidth="2" viewBox="0 0 24 24">
+                            <use href="#lucide-delete" />
+                          </svg>
+                        </span>
+                      </span>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
