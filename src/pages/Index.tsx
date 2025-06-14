@@ -1,216 +1,177 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { CalendarDays, Users, UserPlus, Heart, Activity, Bed, IndianRupee, Stethoscope, LogOut } from "lucide-react";
-
-// Import components
+import { CalendarDays, Users, UserCheck, Bed, FileText, Plus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useHospitalStats } from "@/hooks/useHospitalStats";
 import PatientManagement from "@/components/PatientManagement";
 import DoctorManagement from "@/components/DoctorManagement";
+import AppointmentScheduling from "@/components/AppointmentScheduling";
+import MedicalRecords from "@/components/MedicalRecords";
+import RoomManagement from "@/components/RoomManagement";
 import BillingInvoices from "@/components/BillingInvoices";
-import FaceSheet from "@/components/FaceSheet";
 import ReportTab from "@/components/ReportTab";
-
-// Import stats hook
-import { useHospitalStats } from "@/hooks/useHospitalStats";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
-  const [userRole] = useState<"admin" | "doctor" | "staff">("admin");
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [userRole, setUserRole] = useState<"admin" | "doctor" | "staff">("admin");
+  const { data: stats, isLoading: statsLoading } = useHospitalStats();
 
-  const handleLogout = () => {
-    window.location.reload();
+  useEffect(() => {
+    const getUserRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Fetch the user's role from the 'profiles' table
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single(); // Assuming 'id' is the user ID column in your 'profiles' table
+
+        if (profileError) {
+          console.error("Error fetching user role:", profileError);
+          toast({
+            title: "Error fetching user role",
+            description: "Failed to determine your role. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (profileData && profileData.role) {
+          setUserRole(profileData.role);
+        } else {
+          console.warn("User role not found in profile, defaulting to 'staff'");
+          setUserRole("staff"); // Default role if not found
+        }
+      }
+    };
+
+    getUserRole();
+  }, [toast]);
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Signed out successfully",
+        description: "You have been logged out of your account.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error signing out",
+        description: "There was a problem signing you out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  // Fetch real-time stats
-  const { data: hospitalStats, isLoading, error } = useHospitalStats();
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-      {/* Header */}
-      <div className="bg-white rounded-t-xl shadow-lg">
-        <div className="container mx-auto px-4 py-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="bg-[#102042] p-2 rounded-full">
-                <Stethoscope className="h-10 w-10 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-extrabold text-[#102042] tracking-tight">
-                  VISION MULTISPECIALITY HOSPITAL
-                </h1>
-                <p className="text-lg font-medium text-[#102042] mt-0.5">
-                  Healthcare Management System
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="rounded-full font-bold text-black px-6 py-1 text-lg bg-white">
-                Admin
-              </Badge>
-              <Button variant="ghost" onClick={handleLogout} className="text-[#102042] hover:bg-[#102042]/10 transition">
-                <LogOut className="h-4 w-4 mr-2" />
-                <span className="text-[#102042]">Logout</span>
-              </Button>
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="border-b bg-white shadow-sm">
+        <div className="flex h-16 items-center justify-between px-6">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-2xl font-bold text-gray-900">Hospital Management System</h1>
+            <Badge variant="secondary" className="ml-2">
+              {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+            </Badge>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Button
+              onClick={() => navigate("/billing/create")}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Create Invoice
+            </Button>
+            <Button variant="outline" onClick={handleSignOut}>
+              Sign Out
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto p-6">
-        <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+      <div className="p-6">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Total Patients</CardTitle>
+              <CardDescription>All registered patients</CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center space-x-4">
+              <Users className="h-9 w-9 text-gray-500" />
+              <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.totalPatients}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Active Doctors</CardTitle>
+              <CardDescription>Currently working doctors</CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center space-x-4">
+              <UserCheck className="h-9 w-9 text-green-500" />
+              <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.activeDoctors}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Available Rooms</CardTitle>
+              <CardDescription>Rooms ready for occupancy</CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center space-x-4">
+              <Bed className="h-9 w-9 text-blue-500" />
+              <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.availableRooms}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Upcoming Appointments</CardTitle>
+              <CardDescription>Scheduled appointments today</CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center space-x-4">
+              <CalendarDays className="h-9 w-9 text-orange-500" />
+              <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.upcomingAppointments}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs defaultValue="patients" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="patients">Patients</TabsTrigger>
             <TabsTrigger value="doctors">Doctors</TabsTrigger>
+            <TabsTrigger value="appointments">Appointments</TabsTrigger>
+            <TabsTrigger value="medical-records">Medical Records</TabsTrigger>
+            <TabsTrigger value="rooms">Rooms</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
-            <TabsTrigger value="facesheet">Face Sheet</TabsTrigger>
             <TabsTrigger value="reports">Reports</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="dashboard" className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-              <p className="text-muted-foreground">Welcome to Vision Multispeciality Hospital Management System</p>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {isLoading ? (
-                <div className="col-span-4 flex justify-center py-12">
-                  <span>Loading dashboard stats...</span>
-                </div>
-              ) : error ? (
-                <div className="col-span-4 flex justify-center text-red-600 py-12">
-                  Error loading stats.
-                </div>
-              ) : hospitalStats && (
-                <>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{hospitalStats.totalPatients}</div>
-                      {/* Optionally, you can implement % from last month via code */}
-                      {/* <p className="text-xs text-muted-foreground">
-                        +8% from last month
-                      </p> */}
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Currently Admitted</CardTitle>
-                      <UserPlus className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{hospitalStats.admittedPatients}</div>
-                      <p className="text-xs text-muted-foreground">
-                        {hospitalStats.dischargedToday} discharged today
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Available Beds</CardTitle>
-                      <Bed className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{hospitalStats.availableBeds}</div>
-                      <p className="text-xs text-muted-foreground">
-                        {hospitalStats.occupancyRate}% occupancy rate
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Today's Revenue</CardTitle>
-                      <IndianRupee className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">₹{Number(hospitalStats.totalRevenue).toLocaleString('en-IN')}</div>
-                      <p className="text-xs text-muted-foreground">
-                        Monthly: ₹{Number(hospitalStats.monthlyRevenue).toLocaleString('en-IN')}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
-            </div>
-
-            {/* Additional Stats */}
-            <div className="grid gap-4 md:grid-cols-3">
-              {isLoading ? (
-                <div className="col-span-3 flex justify-center py-8">
-                  <span>Loading stats...</span>
-                </div>
-              ) : error ? (
-                <div className="col-span-3 flex justify-center text-red-600 py-8">
-                  Error loading stats.
-                </div>
-              ) : hospitalStats && (
-                <>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <CalendarDays className="h-5 w-5 mr-2" />
-                        Today's Appointments
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold">{hospitalStats.todaysAppointments}</div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <Activity className="h-5 w-5 mr-2" />
-                        Active Staff
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold">{hospitalStats.activeStaff}</div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-red-700 flex items-center">
-                        <Heart className="h-5 w-5 mr-2" />
-                        Critical Patients
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold text-red-600">{hospitalStats.criticalPatients}</div>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
-            </div>
-          </TabsContent>
-
           <TabsContent value="patients">
-            <PatientManagement userRole={userRole} />
+            <PatientManagement />
           </TabsContent>
-
           <TabsContent value="doctors">
-            <DoctorManagement userRole={userRole} />
+            <DoctorManagement />
           </TabsContent>
-
+          <TabsContent value="appointments">
+            <AppointmentScheduling />
+          </TabsContent>
+          <TabsContent value="medical-records">
+            <MedicalRecords />
+          </TabsContent>
+          <TabsContent value="rooms">
+            <RoomManagement />
+          </TabsContent>
           <TabsContent value="billing">
             <BillingInvoices userRole={userRole} />
           </TabsContent>
-
-          <TabsContent value="facesheet">
-            <FaceSheet userRole={userRole} />
-          </TabsContent>
-
           <TabsContent value="reports">
             <ReportTab />
           </TabsContent>
