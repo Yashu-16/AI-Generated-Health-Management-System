@@ -135,11 +135,11 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
       return;
     }
 
-    // Get the patient face sheet data for snapshot
+    // Get the patient's Face Sheet data (using raw DB column keys)
     let faceSheetSnapshot = null;
     const res = await supabase.from("patients").select("*").eq("id", newRecord.patientId).maybeSingle();
     if (res.data) {
-      faceSheetSnapshot = res.data;
+      faceSheetSnapshot = res.data; // This will include all columns from the patients table, using exact DB keys
     }
 
     const insertData = {
