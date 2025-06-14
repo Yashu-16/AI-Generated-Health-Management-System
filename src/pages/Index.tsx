@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +11,9 @@ import DoctorManagement from "@/components/DoctorManagement";
 import BillingInvoices from "@/components/BillingInvoices";
 import FaceSheet from "@/components/FaceSheet";
 
+// Import stats hook
+import { useHospitalStats } from "@/hooks/useHospitalStats";
+
 const Index = () => {
   const [userRole] = useState<"admin" | "doctor" | "staff">("admin");
 
@@ -19,19 +21,8 @@ const Index = () => {
     window.location.reload();
   };
 
-  // Updated realistic hospital stats
-  const hospitalStats = {
-    totalPatients: 1247,
-    admittedPatients: 156,
-    dischargedToday: 23,
-    availableBeds: 89,
-    occupancyRate: 82,
-    todaysAppointments: 67,
-    totalRevenue: 185000,
-    monthlyRevenue: 4750000,
-    activeStaff: 124,
-    criticalPatients: 8
-  };
+  // Fetch real-time stats
+  const { data: hospitalStats, isLoading, error } = useHospitalStats();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
@@ -80,96 +71,121 @@ const Index = () => {
 
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{hospitalStats.totalPatients}</div>
-                  <p className="text-xs text-muted-foreground">
-                    +8% from last month
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Currently Admitted</CardTitle>
-                  <UserPlus className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{hospitalStats.admittedPatients}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {hospitalStats.dischargedToday} discharged today
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Available Beds</CardTitle>
-                  <Bed className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{hospitalStats.availableBeds}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {hospitalStats.occupancyRate}% occupancy rate
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Today's Revenue</CardTitle>
-                  <IndianRupee className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">₹{hospitalStats.totalRevenue.toLocaleString('en-IN')}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Monthly: ₹{hospitalStats.monthlyRevenue.toLocaleString('en-IN')}
-                  </p>
-                </CardContent>
-              </Card>
+              {isLoading ? (
+                <div className="col-span-4 flex justify-center py-12">
+                  <span>Loading dashboard stats...</span>
+                </div>
+              ) : error ? (
+                <div className="col-span-4 flex justify-center text-red-600 py-12">
+                  Error loading stats.
+                </div>
+              ) : hospitalStats && (
+                <>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{hospitalStats.totalPatients}</div>
+                      {/* Optionally, you can implement % from last month via code */}
+                      {/* <p className="text-xs text-muted-foreground">
+                        +8% from last month
+                      </p> */}
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Currently Admitted</CardTitle>
+                      <UserPlus className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{hospitalStats.admittedPatients}</div>
+                      <p className="text-xs text-muted-foreground">
+                        {hospitalStats.dischargedToday} discharged today
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Available Beds</CardTitle>
+                      <Bed className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{hospitalStats.availableBeds}</div>
+                      <p className="text-xs text-muted-foreground">
+                        {hospitalStats.occupancyRate}% occupancy rate
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Today's Revenue</CardTitle>
+                      <IndianRupee className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">₹{Number(hospitalStats.totalRevenue).toLocaleString('en-IN')}</div>
+                      <p className="text-xs text-muted-foreground">
+                        Monthly: ₹{Number(hospitalStats.monthlyRevenue).toLocaleString('en-IN')}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
             </div>
 
             {/* Additional Stats */}
             <div className="grid gap-4 md:grid-cols-3">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <CalendarDays className="h-5 w-5 mr-2" />
-                    Today's Appointments
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">{hospitalStats.todaysAppointments}</div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Activity className="h-5 w-5 mr-2" />
-                    Active Staff
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">{hospitalStats.activeStaff}</div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-red-700 flex items-center">
-                    <Heart className="h-5 w-5 mr-2" />
-                    Critical Patients
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-red-600">{hospitalStats.criticalPatients}</div>
-                </CardContent>
-              </Card>
+              {isLoading ? (
+                <div className="col-span-3 flex justify-center py-8">
+                  <span>Loading stats...</span>
+                </div>
+              ) : error ? (
+                <div className="col-span-3 flex justify-center text-red-600 py-8">
+                  Error loading stats.
+                </div>
+              ) : hospitalStats && (
+                <>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <CalendarDays className="h-5 w-5 mr-2" />
+                        Today's Appointments
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold">{hospitalStats.todaysAppointments}</div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Activity className="h-5 w-5 mr-2" />
+                        Active Staff
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold">{hospitalStats.activeStaff}</div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-red-700 flex items-center">
+                        <Heart className="h-5 w-5 mr-2" />
+                        Critical Patients
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold text-red-600">{hospitalStats.criticalPatients}</div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
             </div>
           </TabsContent>
 
