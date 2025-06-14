@@ -94,6 +94,10 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const { toast } = useToast();
 
+  // Edit dialog state
+  const [editInvoice, setEditInvoice] = useState<Invoice | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+
   // Mock data
   const patients = [
     { id: "1", name: "John Doe", email: "john.doe@email.com" },
@@ -335,6 +339,59 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     toast({
       title: "Status Updated",
       description: `Invoice status changed to ${status}`,
+    });
+  };
+
+  // Function to start editing
+  const handleStartEdit = (invoice: Invoice) => {
+    setEditInvoice({ ...invoice }); // clone for safety
+    setShowEditDialog(true);
+  };
+
+  // Handle changes in editInvoice dialog
+  const handleEditInvoiceChange = (field: keyof Invoice, value: any) => {
+    if (!editInvoice) return;
+    setEditInvoice((prev) => prev ? { ...prev, [field]: value } : prev);
+  };
+
+  // Handle invoice item updates
+  const handleEditInvoiceItemChange = (idx: number, field: keyof InvoiceItem, value: any) => {
+    if (!editInvoice) return;
+    setEditInvoice((prev) => {
+      if (!prev) return prev;
+      const items = prev.items.map((it, i) =>
+        i === idx ? { ...it, [field]: value, total: (field === 'quantity' || field === 'unitPrice') 
+          ? ((field === 'quantity' ? value : it.quantity) * (field === 'unitPrice' ? value : it.unitPrice)) : it.total } : it
+      );
+      return { ...prev, items };
+    });
+  };
+
+  // Save updated invoice
+  const handleUpdateInvoice = () => {
+    if (!editInvoice) return;
+    // Compute new totals
+    const subtotal = editInvoice.items.reduce((sum, i) => sum + i.total, 0);
+    const tax = subtotal * 0.1;
+    const total = subtotal + tax - (editInvoice.discount || 0);
+
+    const updatedInvoice: Invoice = {
+      ...editInvoice,
+      subtotal,
+      tax,
+      total,
+      updatedAt: new Date(),
+    };
+
+    setInvoices((prev) => prev.map(i => i.id === updatedInvoice.id ? updatedInvoice : i));
+
+    // TODO: Replace below with actual Supabase update when backend is connected:
+    // await supabase.from('invoices').update({ ...updatedInvoice, ... })
+    setShowEditDialog(false);
+    setEditInvoice(null);
+    toast({
+      title: "Invoice Updated",
+      description: `Invoice ${updatedInvoice.invoiceNumber} updated successfully`,
     });
   };
 
@@ -712,6 +769,13 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                           Mark Paid
                         </Button>
                       )}
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleStartEdit(invoice)}
+                      >
+                        Edit
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );
@@ -720,6 +784,135 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Edit Invoice Dialog */}
+      {editInvoice && (
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Edit Invoice</DialogTitle>
+              <DialogDescription>Update invoice details and items.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4">
+              <div>
+                <Label>Patient</Label>
+                <select
+                  className="w-full p-2 border rounded"
+                  value={editInvoice.patientId}
+                  onChange={(e) => handleEditInvoiceChange("patientId", e.target.value)}
+                >
+                  <option value="">Select patient</option>
+                  {patients.map(patient => (
+                    <option key={patient.id} value={patient.id}>
+                      {patient.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="border-t pt-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-lg font-semibold">Invoice Items</h3>
+                </div>
+                {editInvoice.items.map((item, idx) => (
+                  <div key={idx} className="grid grid-cols-12 gap-2 mb-3 p-3 border rounded">
+                    <div className="col-span-4">
+                      <Label>Description *</Label>
+                      <Input
+                        value={item.description}
+                        onChange={e => handleEditInvoiceItemChange(idx, "description", e.target.value)}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label>Category</Label>
+                      <select
+                        className="w-full p-2 border rounded text-sm"
+                        value={item.category}
+                        onChange={e => handleEditInvoiceItemChange(idx, "category", e.target.value)}
+                      >
+                        <option value="Consultation">Consultation</option>
+                        <option value="Medication">Medication</option>
+                        <option value="Lab Test">Lab Test</option>
+                        <option value="Room Charge">Room Charge</option>
+                        <option value="Procedure">Procedure</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div className="col-span-2">
+                      <Label>Quantity</Label>
+                      <Input
+                        type="number"
+                        value={item.quantity}
+                        onChange={e => handleEditInvoiceItemChange(idx, "quantity", parseInt(e.target.value) || 1)}
+                        min="1"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label>Unit Price (₹)</Label>
+                      <Input
+                        type="number"
+                        value={item.unitPrice || ""}
+                        onChange={e => handleEditInvoiceItemChange(idx, "unitPrice", parseFloat(e.target.value) || 0)}
+                        min="0"
+                        step="0.01"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      <Label>Total</Label>
+                      <div className="p-2 bg-gray-50 rounded text-sm font-medium">
+                        ₹{item.total.toLocaleString('en-IN')}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Discount (₹)</Label>
+                  <Input
+                    type="number"
+                    value={editInvoice.discount}
+                    onChange={e => handleEditInvoiceChange("discount", parseFloat(e.target.value) || 0)}
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <Label>Notes</Label>
+                  <Input
+                    value={editInvoice.notes || ""}
+                    onChange={(e) => handleEditInvoiceChange("notes", e.target.value)}
+                    placeholder="Additional notes"
+                  />
+                </div>
+              </div>
+              <div className="border-t pt-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span>₹{editInvoice.items.reduce((sum, item) => sum + item.total, 0).toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tax (10%):</span>
+                    <span>₹{(editInvoice.items.reduce((sum, item) => sum + item.total, 0) * 0.1).toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Discount:</span>
+                    <span>-₹{editInvoice.discount?.toLocaleString('en-IN') || 0}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-lg border-t pt-2">
+                    <span>Total:</span>
+                    <span>₹{(editInvoice.items.reduce((sum, item) => sum + item.total, 0) * 1.1 - (editInvoice.discount || 0)).toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              </div>
+              <Button onClick={handleUpdateInvoice} className="w-full bg-blue-600 hover:bg-blue-700">
+                Save Changes
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
