@@ -11,57 +11,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search, Plus, Edit, UserCheck, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/types/hospital";
+import { usePatients } from "@/hooks/usePatients";
+import { useEffect } from "react";
 
 interface PatientManagementProps {
   userRole: "admin" | "doctor" | "staff";
 }
 
 const PatientManagement = ({ userRole }: PatientManagementProps) => {
-  const [patients, setPatients] = useState<Patient[]>([
-    {
-      id: "1",
-      fullName: "John Doe",
-      age: 35,
-      gender: "Male",
-      phone: "+1234567890",
-      email: "john.doe@email.com",
-      address: "123 Main St, City",
-      emergencyContact: "Jane Doe",
-      emergencyPhone: "+1234567891",
-      bloodType: "O+",
-      allergies: ["Penicillin"],
-      admissionDate: new Date("2024-06-10"),
-      status: "Admitted",
-      assignedDoctorId: "doc1",
-      assignedRoomId: "room204",
-      medicalHistory: "Hypertension, Diabetes",
-      currentDiagnosis: "Pneumonia",
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: "2",
-      fullName: "Sarah Wilson",
-      age: 28,
-      gender: "Female",
-      phone: "+1234567892",
-      email: "sarah.wilson@email.com",
-      address: "456 Oak Ave, City",
-      emergencyContact: "Mike Wilson",
-      emergencyPhone: "+1234567893",
-      bloodType: "A-",
-      allergies: ["Shellfish"],
-      admissionDate: new Date("2024-06-11"),
-      status: "Stable",
-      assignedDoctorId: "doc2",
-      assignedRoomId: "room301",
-      medicalHistory: "None",
-      currentDiagnosis: "Appendicitis",
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ]);
-
+  // State for UI
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -70,6 +28,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const { toast } = useToast();
 
+  // Form state
   const [newPatient, setNewPatient] = useState({
     fullName: "",
     age: "",
@@ -84,20 +43,23 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
     medicalHistory: "",
     insuranceInfo: ""
   });
-
   const [editPatient, setEditPatient] = useState<Patient | null>(null);
 
+  // Load patients from Supabase
+  const { patients, isLoading, addPatient, updatePatient, dischargePatient, refetch } = usePatients();
+
+  // Fill availableRooms/Doctors with dummy until connected to real tables
   const getAvailableRoom = () => {
     const availableRooms = ["room101", "room102", "room201", "room202", "room301"];
     return availableRooms[Math.floor(Math.random() * availableRooms.length)];
   };
-
   const getAvailableDoctor = () => {
     const availableDoctors = ["doc1", "doc2", "doc3"];
     return availableDoctors[Math.floor(Math.random() * availableDoctors.length)];
   };
 
-  const handleAddPatient = () => {
+  // Add new patient to Supabase
+  const handleAddPatient = async () => {
     if (!newPatient.fullName || !newPatient.age || !newPatient.phone) {
       toast({
         title: "Error",
@@ -106,12 +68,10 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       });
       return;
     }
-
     const assignedRoom = getAvailableRoom();
     const assignedDoctor = getAvailableDoctor();
 
-    const patient: Patient = {
-      id: `pat_${Date.now()}`,
+    const patient: Partial<Patient> = {
       fullName: newPatient.fullName,
       age: parseInt(newPatient.age),
       gender: newPatient.gender as "Male" | "Female" | "Other",
@@ -132,88 +92,80 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       updatedAt: new Date()
     };
 
-    setPatients([...patients, patient]);
-    
-    console.log(`Created blank medical record for patient ${patient.id}`);
-    console.log(`Email notification sent to doctor ${assignedDoctor} about new patient ${patient.fullName}`);
-    
-    toast({
-      title: "Patient Added Successfully",
-      description: `${patient.fullName} has been admitted to ${assignedRoom} and assigned to doctor ${assignedDoctor}`,
-    });
-
-    setNewPatient({
-      fullName: "",
-      age: "",
-      gender: "",
-      phone: "",
-      email: "",
-      address: "",
-      emergencyContact: "",
-      emergencyPhone: "",
-      bloodType: "",
-      allergies: "",
-      medicalHistory: "",
-      insuranceInfo: ""
-    });
-    setShowAddDialog(false);
+    try {
+      await addPatient.mutateAsync(patient);
+      toast({
+        title: "Patient Added Successfully",
+        description: `${patient.fullName} has been admitted to ${assignedRoom} and assigned to doctor ${assignedDoctor}`,
+      });
+      setNewPatient({
+        fullName: "",
+        age: "",
+        gender: "",
+        phone: "",
+        email: "",
+        address: "",
+        emergencyContact: "",
+        emergencyPhone: "",
+        bloodType: "",
+        allergies: "",
+        medicalHistory: "",
+        insuranceInfo: ""
+      });
+      setShowAddDialog(false);
+    } catch (err: any) {
+      toast({
+        title: "Error adding patient",
+        description: err.message || "Failed to add patient",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleEditPatient = () => {
+  // Edit patient in Supabase
+  const handleEditPatient = async () => {
     if (!editPatient) return;
-
-    setPatients(patients.map(patient => 
-      patient.id === editPatient.id 
-        ? { ...editPatient, updatedAt: new Date() }
-        : patient
-    ));
-    
-    toast({
-      title: "Patient Updated",
-      description: `${editPatient.fullName}'s information has been updated successfully`,
-    });
-    
-    setShowEditDialog(false);
-    setEditPatient(null);
+    try {
+      await updatePatient.mutateAsync({
+        ...editPatient,
+        updatedAt: new Date(),
+      });
+      toast({
+        title: "Patient Updated",
+        description: `${editPatient.fullName}'s information has been updated successfully`,
+      });
+      setShowEditDialog(false);
+      setEditPatient(null);
+    } catch (err: any) {
+      toast({
+        title: "Update failed",
+        description: err.message || "Failed to update patient",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleViewPatient = (patient: Patient) => {
-    setSelectedPatient(patient);
-    setShowViewDialog(true);
+  // Discharge patient in Supabase
+  const handleDischarge = async (patientId: string) => {
+    try {
+      await dischargePatient.mutateAsync({ id: patientId });
+      toast({
+        title: "Patient Discharged",
+        description: "Patient has been discharged. Invoice generated and sent.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Discharge failed",
+        description: err.message || "Failed to discharge",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleEditClick = (patient: Patient) => {
-    setEditPatient(patient);
-    setShowEditDialog(true);
-  };
-
-  const handleDischarge = (patientId: string) => {
-    setPatients(patients.map(patient => {
-      if (patient.id === patientId) {
-        const updatedPatient = {
-          ...patient,
-          status: "Discharged" as const,
-          dischargeDate: new Date(),
-          updatedAt: new Date()
-        };
-        
-        console.log(`Room ${patient.assignedRoomId} marked as vacant`);
-        console.log(`Invoice generated and emailed to ${patient.email}`);
-        
-        toast({
-          title: "Patient Discharged",
-          description: `${patient.fullName} has been discharged. Invoice generated and sent.`,
-        });
-        
-        return updatedPatient;
-      }
-      return patient;
-    }));
-  };
-
-  const filteredPatients = patients.filter(patient => {
+  // Patient filtering from Supabase data
+  const filteredPatients = (patients ?? []).filter(patient => {
     const matchesSearch = patient.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         patient.phone.includes(searchTerm);
+      patient.phone?.includes(searchTerm);
     const matchesStatus = statusFilter === "All" || patient.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
