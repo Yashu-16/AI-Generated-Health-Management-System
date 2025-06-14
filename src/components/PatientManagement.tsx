@@ -243,7 +243,10 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="gender">Gender</Label>
-                    <Select onValueChange={(value) => setNewPatient({...newPatient, gender: value})}>
+                    <Select
+                      value={newPatient.gender || undefined}
+                      onValueChange={(value) => setNewPatient({...newPatient, gender: value})}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
@@ -256,7 +259,10 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                   </div>
                   <div>
                     <Label htmlFor="bloodType">Blood Type</Label>
-                    <Select onValueChange={(value) => setNewPatient({...newPatient, bloodType: value})}>
+                    <Select
+                      value={newPatient.bloodType || undefined}
+                      onValueChange={(value) => setNewPatient({...newPatient, bloodType: value})}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select blood type" />
                       </SelectTrigger>
