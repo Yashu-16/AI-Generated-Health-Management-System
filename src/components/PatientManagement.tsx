@@ -32,24 +32,23 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
   const [doctors, setDoctors] = useState<{ id: string; full_name: string }[]>([]);
   const [rooms, setRooms] = useState<{ id: string; room_number: string }[]>([]);
 
-  // New: For new patient, store UUIDs
+  // Set selects to undefined by default for correct controlled usage
   const [newPatient, setNewPatient] = useState({
     fullName: "",
     age: "",
-    gender: "",
+    gender: undefined as "Male" | "Female" | "Other" | undefined,
     phone: "",
     email: "",
     address: "",
     emergencyContact: "",
     emergencyPhone: "",
-    bloodType: "",
+    bloodType: undefined as string | undefined,
     allergies: "",
     medicalHistory: "",
     insuranceInfo: "",
-    assignedDoctorId: "",
-    assignedRoomId: "",
+    assignedDoctorId: undefined as string | undefined,
+    assignedRoomId: undefined as string | undefined,
   });
-  const [editPatient, setEditPatient] = useState<Patient | null>(null);
 
   // Load patients from Supabase
   const { patients, isLoading, addPatient, updatePatient, dischargePatient, refetch } = usePatients();
@@ -64,6 +63,25 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
     }
     fetchDoctorsAndRooms();
   }, []);
+
+  // Reset logic - use undefined for selects as well
+  const resetNewPatientForm = () =>
+    setNewPatient({
+      fullName: "",
+      age: "",
+      gender: undefined,
+      phone: "",
+      email: "",
+      address: "",
+      emergencyContact: "",
+      emergencyPhone: "",
+      bloodType: undefined,
+      allergies: "",
+      medicalHistory: "",
+      insuranceInfo: "",
+      assignedDoctorId: undefined,
+      assignedRoomId: undefined,
+    });
 
   // 1. Function to open View Patient Dialog
   const handleViewPatient = (patient: Patient) => {
@@ -88,11 +106,10 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       return;
     }
 
-    // Remove old random assignment.
     const patient: Partial<Patient> = {
       fullName: newPatient.fullName,
       age: parseInt(newPatient.age),
-      gender: newPatient.gender as "Male" | "Female" | "Other",
+      gender: newPatient.gender,
       phone: newPatient.phone,
       email: newPatient.email,
       address: newPatient.address,
@@ -116,22 +133,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
         title: "Patient Added Successfully",
         description: `${patient.fullName} has been admitted`,
       });
-      setNewPatient({
-        fullName: "",
-        age: "",
-        gender: "",
-        phone: "",
-        email: "",
-        address: "",
-        emergencyContact: "",
-        emergencyPhone: "",
-        bloodType: "",
-        allergies: "",
-        medicalHistory: "",
-        insuranceInfo: "",
-        assignedDoctorId: "",
-        assignedRoomId: "",
-      });
+      resetNewPatientForm();
       setShowAddDialog(false);
     } catch (err: any) {
       toast({
@@ -244,8 +246,10 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                   <div>
                     <Label htmlFor="gender">Gender</Label>
                     <Select
-                      value={newPatient.gender || undefined}
-                      onValueChange={(value) => setNewPatient({...newPatient, gender: value})}
+                      value={newPatient.gender}
+                      onValueChange={(value) =>
+                        setNewPatient({ ...newPatient, gender: value as "Male" | "Female" | "Other" })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select gender" />
@@ -260,8 +264,10 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                   <div>
                     <Label htmlFor="bloodType">Blood Type</Label>
                     <Select
-                      value={newPatient.bloodType || undefined}
-                      onValueChange={(value) => setNewPatient({...newPatient, bloodType: value})}
+                      value={newPatient.bloodType}
+                      onValueChange={(value) =>
+                        setNewPatient({ ...newPatient, bloodType: value })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select blood type" />
@@ -355,8 +361,13 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                     <select
                       id="doctor"
                       className="w-full border rounded px-3 py-2"
-                      value={newPatient.assignedDoctorId}
-                      onChange={e => setNewPatient({...newPatient, assignedDoctorId: e.target.value})}
+                      value={newPatient.assignedDoctorId || ""}
+                      onChange={e =>
+                        setNewPatient({
+                          ...newPatient,
+                          assignedDoctorId: e.target.value === "" ? undefined : e.target.value,
+                        })
+                      }
                     >
                       <option value="">Select doctor</option>
                       {doctors.map(d => (
@@ -369,8 +380,13 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                     <select
                       id="room"
                       className="w-full border rounded px-3 py-2"
-                      value={newPatient.assignedRoomId}
-                      onChange={e => setNewPatient({...newPatient, assignedRoomId: e.target.value})}
+                      value={newPatient.assignedRoomId || ""}
+                      onChange={e =>
+                        setNewPatient({
+                          ...newPatient,
+                          assignedRoomId: e.target.value === "" ? undefined : e.target.value,
+                        })
+                      }
                     >
                       <option value="">Select room</option>
                       {rooms.map(r => (
@@ -546,7 +562,10 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                 />
               </div>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select
+              value={statusFilter === "" ? "All" : statusFilter}
+              onValueChange={v => setStatusFilter(v || "All")}
+            >
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>
