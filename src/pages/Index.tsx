@@ -1,250 +1,209 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, UserPlus, FileText, IndianRupee, Bed, Activity, Calendar, TrendingUp } from "lucide-react";
+import { CalendarDays, Users, UserPlus, Heart, Activity, Bed, IndianRupee, Stethoscope, LogOut } from "lucide-react";
+
+// Import components
 import PatientManagement from "@/components/PatientManagement";
 import DoctorManagement from "@/components/DoctorManagement";
-import MedicalRecords from "@/components/MedicalRecords";
 import BillingInvoices from "@/components/BillingInvoices";
-import RoomManagement from "@/components/RoomManagement";
 import FaceSheet from "@/components/FaceSheet";
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState("dashboard");
   const [userRole] = useState<"admin" | "doctor" | "staff">("admin");
 
-  // Mock patients data for dashboard stats
-  const mockPatients = [
-    { id: "1", status: "Admitted", admissionDate: new Date("2024-06-10") },
-    { id: "2", status: "Stable", admissionDate: new Date("2024-06-11") },
-    { id: "3", status: "Critical", admissionDate: new Date("2024-06-12") },
-    { id: "4", status: "Discharged", admissionDate: new Date("2024-06-13") },
-    { id: "5", status: "Critical", admissionDate: new Date("2024-06-14") }
-  ];
-
-  // Mock invoices data for revenue calculation
-  const mockInvoices = [
-    { id: "1", total: 137500, status: "Paid" },
-    { id: "2", total: 72000, status: "Paid" },
-    { id: "3", total: 156000, status: "Pending" },
-    { id: "4", total: 89000, status: "Overdue" }
-  ];
-
-  // Calculate real stats from mock data
-  const stats = {
-    totalPatients: mockPatients.length,
-    admittedPatients: mockPatients.filter(p => p.status === "Admitted" || p.status === "Stable").length,
-    dischargedToday: mockPatients.filter(p => 
-      p.status === "Discharged" && 
-      p.admissionDate.toDateString() === new Date().toDateString()
-    ).length,
-    availableBeds: 34,
-    occupancyRate: Math.round((mockPatients.filter(p => p.status !== "Discharged").length / 50) * 100),
-    totalRevenue: mockInvoices.filter(inv => inv.status === "Paid").reduce((sum, inv) => sum + inv.total, 0),
-    monthlyRevenue: mockInvoices.filter(inv => inv.status === "Paid").reduce((sum, inv) => sum + inv.total, 0) * 0.7,
-    activeStaff: 45,
-    criticalPatients: mockPatients.filter(p => p.status === "Critical").length
+  const handleLogout = () => {
+    window.location.reload();
   };
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case "patients":
-        return <PatientManagement userRole={userRole} />;
-      case "doctors":
-        return <DoctorManagement userRole={userRole} />;
-      case "records":
-        return <MedicalRecords userRole={userRole} />;
-      case "billing":
-        return <BillingInvoices userRole={userRole} />;
-      case "rooms":
-        return <RoomManagement userRole={userRole} />;
-      case "facesheet":
-        return <FaceSheet userRole={userRole} />;
-      default:
-        return (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Hospital Dashboard</h1>
-              <p className="text-muted-foreground">
-                Welcome to the Hospital Information Management System
-              </p>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalPatients}</div>
-                  <p className="text-xs text-muted-foreground">
-                    +{stats.admittedPatients} currently admitted
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Available Beds</CardTitle>
-                  <Bed className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.availableBeds}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stats.occupancyRate}% occupancy rate
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                  <IndianRupee className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">₹{stats.totalRevenue.toLocaleString('en-IN')}</div>
-                  <p className="text-xs text-muted-foreground">
-                    ₹{Math.round(stats.monthlyRevenue).toLocaleString('en-IN')} this month
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Critical Patients</CardTitle>
-                  <Activity className="h-4 w-4 text-red-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.criticalPatients}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Require immediate attention
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Admissions</CardTitle>
-                  <CardDescription>Patients admitted in the last 24 hours</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <div>
-                        <p className="font-medium">John Doe</p>
-                        <p className="text-sm text-muted-foreground">Room 204 - Emergency</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <div>
-                        <p className="font-medium">Sarah Wilson</p>
-                        <p className="text-sm text-muted-foreground">Room 301 - Planned Surgery</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                  <CardDescription>Common tasks and shortcuts</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-2">
-                    <Button 
-                      variant="outline" 
-                      className="justify-start"
-                      onClick={() => setActiveTab("patients")}
-                    >
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Add New Patient
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="justify-start"
-                      onClick={() => setActiveTab("facesheet")}
-                    >
-                      <FileText className="mr-2 h-4 w-4" />
-                      Create Face Sheet
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="justify-start"
-                      onClick={() => setActiveTab("billing")}
-                    >
-                      <IndianRupee className="mr-2 h-4 w-4" />
-                      Generate Invoice
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        );
-    }
+  // Mock data for dashboard
+  const hospitalStats = {
+    totalPatients: 245,
+    admittedPatients: 89,
+    dischargedToday: 12,
+    availableBeds: 156,
+    occupancyRate: 78,
+    todaysAppointments: 34,
+    totalRevenue: 2450000,
+    monthlyRevenue: 12750000,
+    activeStaff: 45,
+    criticalPatients: 3
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="border-b">
-        <div className="flex h-16 items-center px-4">
-          <div className="mr-8">
-            <h2 className="text-2xl font-bold">Hospital IMS</h2>
-          </div>
-          <div className="flex space-x-4">
-            <Button
-              variant={activeTab === "dashboard" ? "default" : "ghost"}
-              onClick={() => setActiveTab("dashboard")}
-            >
-              Dashboard
-            </Button>
-            <Button
-              variant={activeTab === "patients" ? "default" : "ghost"}
-              onClick={() => setActiveTab("patients")}
-            >
-              Patient Management
-            </Button>
-            <Button
-              variant={activeTab === "facesheet" ? "default" : "ghost"}
-              onClick={() => setActiveTab("facesheet")}
-            >
-              Face Sheet
-            </Button>
-            <Button
-              variant={activeTab === "doctors" ? "default" : "ghost"}
-              onClick={() => setActiveTab("doctors")}
-            >
-              Doctor Management
-            </Button>
-            <Button
-              variant={activeTab === "records" ? "default" : "ghost"}
-              onClick={() => setActiveTab("records")}
-            >
-              Medical Records
-            </Button>
-            <Button
-              variant={activeTab === "billing" ? "default" : "ghost"}
-              onClick={() => setActiveTab("billing")}
-            >
-              Billing & Invoices
-            </Button>
-            <Button
-              variant={activeTab === "rooms" ? "default" : "ghost"}
-              onClick={() => setActiveTab("rooms")}
-            >
-              Room Management
-            </Button>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      {/* Header */}
+      <div className="bg-blue-600 text-white shadow-lg">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="bg-white p-2 rounded-full">
+                <Stethoscope className="h-8 w-8 text-blue-600" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">VISION MULTISPECIALITY HOSPITAL</h1>
+                <p className="text-blue-100">Healthcare Management System</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Badge variant="secondary" className="bg-blue-500 text-white">
+                {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+              </Badge>
+              <Button variant="ghost" onClick={handleLogout} className="text-white hover:bg-blue-700">
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
-      </nav>
+      </div>
 
-      <main className="container mx-auto py-6">
-        {renderContent()}
-      </main>
+      <div className="container mx-auto p-6">
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6 bg-blue-100">
+            <TabsTrigger value="dashboard" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Dashboard</TabsTrigger>
+            <TabsTrigger value="patients" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Patients</TabsTrigger>
+            <TabsTrigger value="doctors" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Doctors</TabsTrigger>
+            <TabsTrigger value="billing" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Billing</TabsTrigger>
+            <TabsTrigger value="facesheet" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Face Sheet</TabsTrigger>
+            <TabsTrigger value="reports" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Reports</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="dashboard" className="space-y-6">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-blue-800">Dashboard</h2>
+              <p className="text-muted-foreground">Welcome to Vision Multispeciality Hospital Management System</p>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Card className="border-blue-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-blue-700">Total Patients</CardTitle>
+                  <Users className="h-4 w-4 text-blue-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-800">{hospitalStats.totalPatients}</div>
+                  <p className="text-xs text-muted-foreground">
+                    +12% from last month
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-blue-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-blue-700">Admitted Today</CardTitle>
+                  <UserPlus className="h-4 w-4 text-blue-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-800">{hospitalStats.admittedPatients}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {hospitalStats.dischargedToday} discharged
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-blue-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-blue-700">Available Beds</CardTitle>
+                  <Bed className="h-4 w-4 text-blue-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-800">{hospitalStats.availableBeds}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {hospitalStats.occupancyRate}% occupancy rate
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-blue-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-blue-700">Today's Revenue</CardTitle>
+                  <IndianRupee className="h-4 w-4 text-blue-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-800">₹{hospitalStats.totalRevenue.toLocaleString('en-IN')}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Monthly: ₹{hospitalStats.monthlyRevenue.toLocaleString('en-IN')}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Additional Stats */}
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card className="border-blue-200">
+                <CardHeader>
+                  <CardTitle className="text-blue-700 flex items-center">
+                    <CalendarDays className="h-5 w-5 mr-2" />
+                    Today's Appointments
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-blue-800">{hospitalStats.todaysAppointments}</div>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-blue-200">
+                <CardHeader>
+                  <CardTitle className="text-blue-700 flex items-center">
+                    <Activity className="h-5 w-5 mr-2" />
+                    Active Staff
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-blue-800">{hospitalStats.activeStaff}</div>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-blue-200">
+                <CardHeader>
+                  <CardTitle className="text-red-700 flex items-center">
+                    <Heart className="h-5 w-5 mr-2" />
+                    Critical Patients
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-red-600">{hospitalStats.criticalPatients}</div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="patients">
+            <PatientManagement userRole={userRole} />
+          </TabsContent>
+
+          <TabsContent value="doctors">
+            <DoctorManagement userRole={userRole} />
+          </TabsContent>
+
+          <TabsContent value="billing">
+            <BillingInvoices userRole={userRole} />
+          </TabsContent>
+
+          <TabsContent value="facesheet">
+            <FaceSheet />
+          </TabsContent>
+
+          <TabsContent value="reports">
+            <Card className="border-blue-200">
+              <CardHeader>
+                <CardTitle className="text-blue-700">Reports & Analytics</CardTitle>
+                <CardDescription>Generate and view hospital reports</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-center text-muted-foreground py-8">
+                  Reports module coming soon...
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };

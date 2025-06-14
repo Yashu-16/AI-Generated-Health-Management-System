@@ -113,10 +113,10 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     return `INV-${year}-${nextNumber}`;
   };
 
-  const generateUniqueBarcode = () => {
+  const generateUniqueReferenceNumber = () => {
     const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 1000000);
-    return `${timestamp}${random}`.slice(-12);
+    const random = Math.floor(Math.random() * 1000);
+    return `REF${timestamp}${random}`.slice(-10);
   };
 
   const handleAddItem = () => {
@@ -187,11 +187,12 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     setInvoices([...invoices, invoice]);
     
     const patient = patients.find(p => p.id === newInvoice.patientId);
-    console.log(`Invoice ${invoice.invoiceNumber} emailed to ${patient?.email}`);
+    const referenceNumber = generateUniqueReferenceNumber();
+    console.log(`Invoice ${invoice.invoiceNumber} with reference ${referenceNumber} emailed to ${patient?.email}`);
     
     toast({
       title: "Invoice Created",
-      description: `Invoice ${invoice.invoiceNumber} has been generated with unique barcode`,
+      description: `Invoice ${invoice.invoiceNumber} has been generated with reference number`,
     });
 
     setNewInvoice({
@@ -203,9 +204,9 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     setShowAddDialog(false);
   };
 
-  const printInvoiceWithBarcode = (invoice: Invoice) => {
+  const printInvoiceWithReference = (invoice: Invoice) => {
     const patient = patients.find(p => p.id === invoice.patientId);
-    const barcode = generateUniqueBarcode();
+    const referenceNumber = generateUniqueReferenceNumber();
     
     const printWindow = window.open('', '_blank');
     if (printWindow) {
@@ -214,18 +215,17 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
           <head>
             <title>Invoice ${invoice.invoiceNumber}</title>
             <style>
-              body { font-family: Arial, sans-serif; margin: 20px; }
-              .header { text-align: center; margin-bottom: 30px; border: 2px solid #000; padding: 20px; background-color: #f8f9fa; }
-              .hospital-name { font-size: 28px; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
-              .hospital-info { font-size: 14px; color: #666; line-height: 1.5; }
-              .invoice-details { margin: 20px 0; padding: 15px; border: 1px solid #ddd; background-color: #f9f9f9; }
+              body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
+              .header { text-align: center; margin-bottom: 30px; border: 2px solid #2563eb; padding: 20px; background-color: #eff6ff; }
+              .hospital-name { font-size: 28px; font-weight: bold; color: #1e40af; margin-bottom: 10px; }
+              .hospital-info { font-size: 14px; color: #1e40af; line-height: 1.5; }
+              .invoice-details { margin: 20px 0; padding: 15px; border: 1px solid #bfdbfe; background-color: #f8fafc; }
               .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-              .items-table th, .items-table td { border: 1px solid #000; padding: 10px; text-align: left; }
-              .items-table th { background-color: #e9ecef; font-weight: bold; }
-              .totals { margin-top: 20px; text-align: right; border: 1px solid #ddd; padding: 15px; }
-              .barcode-section { margin: 30px 0; text-align: center; border: 2px solid #000; padding: 25px; background-color: #f8f9fa; }
-              .barcode { font-family: 'Courier New', monospace; font-size: 18px; letter-spacing: 2px; margin: 15px 0; font-weight: bold; }
-              .barcode-visual { font-family: 'Courier New', monospace; font-size: 36px; letter-spacing: 1px; color: #000; }
+              .items-table th, .items-table td { border: 1px solid #2563eb; padding: 10px; text-align: left; }
+              .items-table th { background-color: #dbeafe; font-weight: bold; color: #1e40af; }
+              .totals { margin-top: 20px; text-align: right; border: 1px solid #bfdbfe; padding: 15px; }
+              .reference-section { margin: 30px 0; text-align: center; border: 2px solid #2563eb; padding: 25px; background-color: #eff6ff; }
+              .reference-number { font-family: 'Courier New', monospace; font-size: 24px; font-weight: bold; color: #1e40af; margin: 15px 0; }
               .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
             </style>
           </head>
@@ -240,7 +240,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             </div>
             
             <div class="invoice-details">
-              <h2 style="margin-top: 0;">MEDICAL INVOICE</h2>
+              <h2 style="margin-top: 0; color: #1e40af;">MEDICAL INVOICE</h2>
               <div style="display: flex; justify-content: space-between;">
                 <div>
                   <p><strong>Invoice Number:</strong> ${invoice.invoiceNumber}</p>
@@ -283,19 +283,18 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
               <div style="margin-bottom: 8px;"><strong>Subtotal: ₹${invoice.subtotal.toLocaleString('en-IN')}</strong></div>
               <div style="margin-bottom: 8px;"><strong>Tax (10%): ₹${invoice.tax.toLocaleString('en-IN')}</strong></div>
               <div style="margin-bottom: 8px;"><strong>Discount: -₹${invoice.discount.toLocaleString('en-IN')}</strong></div>
-              <div style="font-size: 20px; border-top: 2px solid #000; padding-top: 10px; margin-top: 10px;">
+              <div style="font-size: 20px; border-top: 2px solid #2563eb; padding-top: 10px; margin-top: 10px;">
                 <strong>TOTAL AMOUNT: ₹${invoice.total.toLocaleString('en-IN')}</strong>
               </div>
             </div>
             
-            <div class="barcode-section">
-              <h3 style="margin-top: 0;">INVOICE BARCODE</h3>
-              <div class="barcode-visual">|||| ||| || |||||| ||| | |||||| ||</div>
-              <div class="barcode">${barcode}</div>
-              <p style="font-size: 12px; margin-bottom: 0;">Scan this barcode to access invoice details digitally</p>
+            <div class="reference-section">
+              <h3 style="margin-top: 0; color: #1e40af;">REFERENCE NUMBER</h3>
+              <div class="reference-number">${referenceNumber}</div>
+              <p style="font-size: 12px; margin-bottom: 0;">Please quote this reference number for all communications</p>
             </div>
             
-            ${invoice.notes ? `<div style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; background-color: #f9f9f9;"><p><strong>Notes:</strong> ${invoice.notes}</p></div>` : ''}
+            ${invoice.notes ? `<div style="margin-top: 20px; padding: 15px; border: 1px solid #bfdbfe; background-color: #f8fafc;"><p><strong>Notes:</strong> ${invoice.notes}</p></div>` : ''}
             
             <div class="footer">
               <p><strong>Thank you for choosing Vision Multispeciality Hospital</strong></p>
@@ -307,11 +306,11 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
       printWindow.document.close();
       printWindow.print();
       
-      console.log(`Invoice ${invoice.invoiceNumber} generated with barcode: ${barcode}`);
+      console.log(`Invoice ${invoice.invoiceNumber} generated with reference: ${referenceNumber}`);
       
       toast({
         title: "Invoice Printed",
-        description: `Invoice with barcode ${barcode} has been generated`,
+        description: `Invoice with reference ${referenceNumber} has been generated`,
       });
     }
   };
@@ -365,13 +364,13 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Billing & Invoices</h1>
-          <p className="text-muted-foreground">Manage patient billing with barcode generation</p>
+          <h1 className="text-3xl font-bold tracking-tight text-blue-800">Billing & Invoices</h1>
+          <p className="text-muted-foreground">Manage patient billing with unique reference numbers</p>
         </div>
         {(userRole === "admin" || userRole === "staff") && (
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="bg-blue-600 hover:bg-blue-700">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Invoice
               </Button>
@@ -379,7 +378,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Invoice</DialogTitle>
-                <DialogDescription>Generate an invoice with unique barcode for patient services</DialogDescription>
+                <DialogDescription>Generate an invoice with unique reference number for patient services</DialogDescription>
               </DialogHeader>
               <div className="grid gap-4">
                 <div>
@@ -517,13 +516,13 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 p-3 bg-blue-50 rounded">
-                  <Barcode className="h-5 w-5 text-blue-600" />
-                  <span className="text-sm text-blue-800">Each invoice will be generated with a unique barcode for easy tracking</span>
+                <div className="flex items-center gap-2 p-3 bg-blue-50 rounded border border-blue-200">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  <span className="text-sm text-blue-800">Each invoice will be generated with a unique reference number for easy tracking</span>
                 </div>
 
-                <Button onClick={handleCreateInvoice} className="w-full">
-                  Create Invoice with Barcode
+                <Button onClick={handleCreateInvoice} className="w-full bg-blue-600 hover:bg-blue-700">
+                  Create Invoice with Reference Number
                 </Button>
               </div>
             </DialogContent>
@@ -532,7 +531,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
             <IndianRupee className="h-4 w-4 text-green-600" />
@@ -541,7 +540,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             <div className="text-2xl font-bold">₹{totalRevenue.toLocaleString('en-IN')}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
             <FileText className="h-4 w-4 text-yellow-600" />
@@ -550,7 +549,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             <div className="text-2xl font-bold">₹{pendingAmount.toLocaleString('en-IN')}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Overdue Invoices</CardTitle>
             <User className="h-4 w-4 text-red-600" />
@@ -559,7 +558,7 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             <div className="text-2xl font-bold">₹{overdueAmount.toLocaleString('en-IN')}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-blue-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Invoices</CardTitle>
             <TrendingUp className="h-4 w-4 text-blue-600" />
@@ -570,10 +569,10 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
         </Card>
       </div>
 
-      <Card>
+      <Card className="border-blue-200">
         <CardHeader>
-          <CardTitle>Invoice List</CardTitle>
-          <CardDescription>Search and manage patient invoices with barcode tracking</CardDescription>
+          <CardTitle className="text-blue-700">Invoice List</CardTitle>
+          <CardDescription>Search and manage patient invoices with reference tracking</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 mb-4">
@@ -634,9 +633,10 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => printInvoiceWithBarcode(invoice)}
+                        onClick={() => printInvoiceWithReference(invoice)}
+                        className="border-blue-300 text-blue-600 hover:bg-blue-50"
                       >
-                        <Barcode className="h-4 w-4" />
+                        <FileText className="h-4 w-4" />
                       </Button>
                       <Dialog>
                         <DialogTrigger asChild>
