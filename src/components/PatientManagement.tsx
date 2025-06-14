@@ -662,18 +662,11 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeletePatient(patient.id)}
-                      className="border border-[#102042] text-[#102042] hover:bg-[#102042]/10"
+                      className="p-2 border border-[#102042] hover:bg-red-100"
                       title="Delete Patient"
+                      aria-label="Delete Patient"
                     >
-                      <span className="sr-only">Delete</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                        <span>Delete</span>
-                        <span>
-                          <svg width="18" height="18" fill="none" stroke="#102042" strokeWidth="2" viewBox="0 0 24 24">
-                            <use href="#lucide-delete" />
-                          </svg>
-                        </span>
-                      </span>
+                      <Trash className="h-4 w-4 text-red-600" />
                     </Button>
                   </TableCell>
                 </TableRow>
