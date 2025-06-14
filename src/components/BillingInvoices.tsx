@@ -35,10 +35,10 @@ const defaultItem: InvoiceItem = {
 const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
   const { toast } = useToast();
 
   const { invoices, isLoading, error, updateInvoice, addInvoice, refetch } = useInvoices();
@@ -87,9 +87,31 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     setNotes("");
   };
 
+  const populateEditForm = (invoice: Invoice) => {
+    setPatientId(invoice.patientId);
+    setInvoiceNumber(invoice.invoiceNumber);
+    setIssueDate(format(invoice.issueDate, "yyyy-MM-dd"));
+    setDueDate(format(invoice.dueDate, "yyyy-MM-dd"));
+    setItems(invoice.items || [{ ...defaultItem }]);
+    setTax(invoice.tax);
+    setDiscount(invoice.discount);
+    setStatus(invoice.status);
+    setPaymentMethod(invoice.paymentMethod || "");
+    setPaymentDate(invoice.paymentDate ? format(invoice.paymentDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"));
+    setNotes(invoice.notes || "");
+  };
+
   const handleCreateInvoice = () => {
     setShowCreateForm(true);
+    setShowEditForm(false);
     resetCreateForm();
+  };
+
+  const handleEditInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setShowEditForm(true);
+    setShowCreateForm(false);
+    populateEditForm(invoice);
   };
 
   const handleSubmitCreateForm = async (e: React.FormEvent) => {
@@ -126,27 +148,39 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     }
   };
 
-  const handleEditInvoice = async (invoice: Invoice) => {
-    setSelectedInvoice(invoice);
-    setShowEditDialog(true);
-  };
+  const handleSubmitEditForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedInvoice || !patientId || !invoiceNumber || !issueDate || !dueDate || items.length === 0) {
+      toast({ title: "Please fill in all required fields.", variant: "destructive" });
+      return;
+    }
 
-  const handleUpdateInvoice = async () => {
-    if (!selectedInvoice) return;
     try {
-      await updateInvoice.mutateAsync(selectedInvoice);
-      toast({
-        title: "Invoice Updated",
-        description: `Invoice ${selectedInvoice.invoiceNumber} has been updated successfully`,
+      await updateInvoice.mutateAsync({
+        ...selectedInvoice,
+        patientId,
+        invoiceNumber,
+        issueDate: new Date(issueDate),
+        dueDate: new Date(dueDate),
+        items,
+        subtotal,
+        tax,
+        discount,
+        total,
+        status,
+        paymentMethod: paymentMethod || undefined,
+        paymentDate: paymentDate ? new Date(paymentDate) : undefined,
+        notes,
       });
-      setShowEditDialog(false);
+      toast({
+        title: "Invoice updated!",
+        description: `Invoice ${invoiceNumber} has been updated successfully.`,
+      });
+      setShowEditForm(false);
       setSelectedInvoice(null);
+      resetCreateForm();
     } catch (err: any) {
-      toast({
-        title: "Update failed",
-        description: err.message || "Failed to update invoice",
-        variant: "destructive"
-      });
+      toast({ title: "Failed to update invoice", description: err.message || "Failed to update invoice", variant: "destructive" });
     }
   };
 
@@ -306,12 +340,17 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     }
   };
 
-  if (showCreateForm) {
+  if (showCreateForm || showEditForm) {
     return (
       <div className="space-y-6">
         <div className="flex items-center space-x-4">
           <Button 
-            onClick={() => setShowCreateForm(false)} 
+            onClick={() => {
+              setShowCreateForm(false);
+              setShowEditForm(false);
+              setSelectedInvoice(null);
+              resetCreateForm();
+            }} 
             variant="outline"
             size="sm"
           >
@@ -319,14 +358,18 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
             Back to Invoices
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Create New Invoice</h1>
-            <p className="text-muted-foreground">Fill in the details to create a new invoice</p>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {showEditForm ? "Edit Invoice" : "Create New Invoice"}
+            </h1>
+            <p className="text-muted-foreground">
+              {showEditForm ? "Update the invoice details" : "Fill in the details to create a new invoice"}
+            </p>
           </div>
         </div>
 
         <Card className="max-w-4xl">
           <CardContent className="pt-6">
-            <form className="space-y-6" onSubmit={handleSubmitCreateForm}>
+            <form className="space-y-6" onSubmit={showEditForm ? handleSubmitEditForm : handleSubmitCreateForm}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="patient">Patient *</Label>
@@ -353,8 +396,8 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                     value={invoiceNumber}
                     onChange={e => setInvoiceNumber(e.target.value)}
                     required
-                    readOnly
-                    className="bg-gray-50"
+                    readOnly={!showEditForm}
+                    className={!showEditForm ? "bg-gray-50" : ""}
                   />
                 </div>
                 <div>
@@ -465,8 +508,19 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
                 />
               </div>
               <div className="flex gap-4">
-                <Button type="submit" className="flex-1">Create Invoice</Button>
-                <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
+                <Button type="submit" className="flex-1">
+                  {showEditForm ? "Update Invoice" : "Create Invoice"}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setShowEditForm(false);
+                    setSelectedInvoice(null);
+                    resetCreateForm();
+                  }}
+                >
                   Cancel
                 </Button>
               </div>
@@ -495,61 +549,6 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
           </Button>
         )}
       </div>
-
-      {/* Edit Invoice Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Invoice</DialogTitle>
-            <DialogDescription>Update invoice details</DialogDescription>
-          </DialogHeader>
-          {selectedInvoice && (
-            <div className="grid gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="patientId">Patient ID</Label>
-                  <Input
-                    id="patientId"
-                    value={selectedInvoice.patientId}
-                    onChange={(e) => setSelectedInvoice({...selectedInvoice, patientId: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="invoiceNumber">Invoice Number</Label>
-                  <Input
-                    id="invoiceNumber"
-                    value={selectedInvoice.invoiceNumber}
-                    onChange={(e) => setSelectedInvoice({...selectedInvoice, invoiceNumber: e.target.value})}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="issueDate">Issue Date</Label>
-                  <Input
-                    id="issueDate"
-                    type="date"
-                    value={selectedInvoice.issueDate.toISOString().slice(0, 10)}
-                    onChange={(e) => setSelectedInvoice({...selectedInvoice, issueDate: new Date(e.target.value)})}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="dueDate">Due Date</Label>
-                  <Input
-                    id="dueDate"
-                    type="date"
-                    value={selectedInvoice.dueDate.toISOString().slice(0, 10)}
-                    onChange={(e) => setSelectedInvoice({...selectedInvoice, dueDate: new Date(e.target.value)})}
-                  />
-                </div>
-              </div>
-              <Button onClick={handleUpdateInvoice} className="w-full">
-                Update Invoice
-              </Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* View Invoice Dialog */}
       <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
