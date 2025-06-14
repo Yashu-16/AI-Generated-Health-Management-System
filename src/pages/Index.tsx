@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -108,19 +107,9 @@ const Index = () => {
                     <CardTitle>Available Rooms</CardTitle>
                     <CardDescription>Rooms ready for occupancy</CardDescription>
                   </CardHeader>
-                  <CardContent className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <Bed className="h-9 w-9 text-blue-500" />
-                      <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.availableBeds}</div>
-                    </div>
-                    <Button
-                      onClick={() => navigate("/billing/create")}
-                      className="bg-blue-600 hover:bg-blue-700"
-                      size="sm"
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Create Invoice
-                    </Button>
+                  <CardContent className="flex items-center space-x-4">
+                    <Bed className="h-9 w-9 text-blue-500" />
+                    <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.availableBeds}</div>
                   </CardContent>
                 </Card>
 
