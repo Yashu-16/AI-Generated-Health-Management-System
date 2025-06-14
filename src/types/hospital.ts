@@ -1,4 +1,3 @@
-
 export interface Patient {
   id: string;
   fullName: string;
@@ -79,6 +78,7 @@ export interface MedicalRecord {
   followUpDate?: Date;
   createdAt: Date;
   updatedAt: Date;
+  faceSheetSnapshot?: any; // <-- Add this line to support the snapshot
 }
 
 export interface Medication {

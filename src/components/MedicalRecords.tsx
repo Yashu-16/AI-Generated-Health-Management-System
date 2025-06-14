@@ -22,8 +22,10 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [patients, setPatients] = useState<{id: string, name: string}[]>([]);
+  // Save all patient object fields so we can use face sheet info directly
+  const [patients, setPatients] = useState<any[]>([]);
   const [doctors, setDoctors] = useState<{id: string, name: string}[]>([]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
@@ -48,10 +50,10 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
   useEffect(() => {
     const fetchMeta = async () => {
       const [{ data: patientData }, { data: doctorData }] = await Promise.all([
-        supabase.from("patients").select("id, full_name, age, gender, phone, email, address, emergency_contact, emergency_phone, blood_type, allergies, admission_date, discharge_date, status, assigned_doctor_id, assigned_room_id, insurance_info, medical_history, current_diagnosis, created_at, updated_at"),
+        supabase.from("patients").select("*"),
         supabase.from("doctors").select("id, full_name"),
       ]);
-      if (patientData) setPatients(patientData.map((p: any) => ({ id: p.id, name: p.full_name, faceSheet: p })));
+      if (patientData) setPatients(patientData);
       else setPatients([]);
       if (doctorData) setDoctors(doctorData.map((d: any) => ({ id: d.id, name: d.full_name })));
       else setDoctors([]);
@@ -100,8 +102,8 @@ const MedicalRecords = ({ userRole }: MedicalRecordsProps) => {
 
   // Helper to get full patient face sheet data by id
   const getFaceSheetData = (patientId: string) => {
-    const patient = patients.find(p => p.id === patientId && p.faceSheet);
-    return patient ? patient.faceSheet : null;
+    const patient = patients.find(p => p.id === patientId);
+    return patient ? patient : null;
   };
 
   const displayFaceSheet = (snapshot: any) => {
