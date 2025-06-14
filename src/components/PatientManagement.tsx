@@ -26,6 +26,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [editPatient, setEditPatient] = useState<Patient | null>(null);
   const { toast } = useToast();
 
   // State for doctors and rooms select lists
