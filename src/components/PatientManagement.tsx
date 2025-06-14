@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { Search, Plus, Edit, UserCheck, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/types/hospital";
 import { usePatients } from "@/hooks/usePatients";
-import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PatientManagementProps {
   userRole: "admin" | "doctor" | "staff";
@@ -28,7 +28,11 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const { toast } = useToast();
 
-  // Form state
+  // State for doctors and rooms select lists
+  const [doctors, setDoctors] = useState<{ id: string; full_name: string }[]>([]);
+  const [rooms, setRooms] = useState<{ id: string; room_number: string }[]>([]);
+
+  // New: For new patient, store UUIDs
   const [newPatient, setNewPatient] = useState({
     fullName: "",
     age: "",
@@ -41,24 +45,39 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
     bloodType: "",
     allergies: "",
     medicalHistory: "",
-    insuranceInfo: ""
+    insuranceInfo: "",
+    assignedDoctorId: "",
+    assignedRoomId: "",
   });
   const [editPatient, setEditPatient] = useState<Patient | null>(null);
 
   // Load patients from Supabase
   const { patients, isLoading, addPatient, updatePatient, dischargePatient, refetch } = usePatients();
 
-  // Fill availableRooms/Doctors with dummy until connected to real tables
-  const getAvailableRoom = () => {
-    const availableRooms = ["room101", "room102", "room201", "room202", "room301"];
-    return availableRooms[Math.floor(Math.random() * availableRooms.length)];
-  };
-  const getAvailableDoctor = () => {
-    const availableDoctors = ["doc1", "doc2", "doc3"];
-    return availableDoctors[Math.floor(Math.random() * availableDoctors.length)];
+  // Fetch doctors and rooms from Supabase
+  useEffect(() => {
+    async function fetchDoctorsAndRooms() {
+      const { data: docData } = await supabase.from("doctors").select("id, full_name");
+      setDoctors(docData ?? []);
+      const { data: roomData } = await supabase.from("rooms").select("id, room_number");
+      setRooms(roomData ?? []);
+    }
+    fetchDoctorsAndRooms();
+  }, []);
+
+  // 1. Function to open View Patient Dialog
+  const handleViewPatient = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setShowViewDialog(true);
   };
 
-  // Add new patient to Supabase
+  // 2. Function to open Edit Patient Dialog
+  const handleEditClick = (patient: Patient) => {
+    setEditPatient({ ...patient });
+    setShowEditDialog(true);
+  };
+
+  // 3. Remove old doctor/room assignment and use selected
   const handleAddPatient = async () => {
     if (!newPatient.fullName || !newPatient.age || !newPatient.phone) {
       toast({
@@ -68,9 +87,8 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       });
       return;
     }
-    const assignedRoom = getAvailableRoom();
-    const assignedDoctor = getAvailableDoctor();
 
+    // Remove old random assignment.
     const patient: Partial<Patient> = {
       fullName: newPatient.fullName,
       age: parseInt(newPatient.age),
@@ -84,8 +102,8 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       allergies: newPatient.allergies.split(",").map(a => a.trim()).filter(a => a),
       admissionDate: new Date(),
       status: "Admitted",
-      assignedDoctorId: assignedDoctor,
-      assignedRoomId: assignedRoom,
+      assignedDoctorId: newPatient.assignedDoctorId || null,
+      assignedRoomId: newPatient.assignedRoomId || null,
       medicalHistory: newPatient.medicalHistory,
       insuranceInfo: newPatient.insuranceInfo,
       createdAt: new Date(),
@@ -96,7 +114,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       await addPatient.mutateAsync(patient);
       toast({
         title: "Patient Added Successfully",
-        description: `${patient.fullName} has been admitted to ${assignedRoom} and assigned to doctor ${assignedDoctor}`,
+        description: `${patient.fullName} has been admitted`,
       });
       setNewPatient({
         fullName: "",
@@ -110,7 +128,9 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
         bloodType: "",
         allergies: "",
         medicalHistory: "",
-        insuranceInfo: ""
+        insuranceInfo: "",
+        assignedDoctorId: "",
+        assignedRoomId: "",
       });
       setShowAddDialog(false);
     } catch (err: any) {
@@ -322,6 +342,36 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                     value={newPatient.insuranceInfo}
                     onChange={(e) => setNewPatient({...newPatient, insuranceInfo: e.target.value})}
                   />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="doctor">Assigned Doctor</Label>
+                    <select
+                      id="doctor"
+                      className="w-full border rounded px-3 py-2"
+                      value={newPatient.assignedDoctorId}
+                      onChange={e => setNewPatient({...newPatient, assignedDoctorId: e.target.value})}
+                    >
+                      <option value="">Select doctor</option>
+                      {doctors.map(d => (
+                        <option value={d.id} key={d.id}>{d.full_name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <Label htmlFor="room">Assigned Room</Label>
+                    <select
+                      id="room"
+                      className="w-full border rounded px-3 py-2"
+                      value={newPatient.assignedRoomId}
+                      onChange={e => setNewPatient({...newPatient, assignedRoomId: e.target.value})}
+                    >
+                      <option value="">Select room</option>
+                      {rooms.map(r => (
+                        <option value={r.id} key={r.id}>{r.room_number}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <Button onClick={handleAddPatient} className="w-full">
                   Add Patient
