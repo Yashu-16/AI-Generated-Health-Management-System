@@ -63,13 +63,42 @@ export function useDoctors() {
     }
   });
 
-  // You can add update/delete as needed
+  // Update doctor
+  const updateDoctor = useMutation({
+    mutationFn: async (input: Partial<Doctor> & { id: string }) => {
+      const { id, ...fields } = input;
+      // We do NOT update created_at
+      const updateData: any = {
+        full_name: fields.fullName,
+        specialization: fields.specialization,
+        qualification: fields.qualification,
+        experience: fields.experience,
+        phone: fields.phone,
+        email: fields.email,
+        department: fields.department,
+        schedule: fields.schedule,
+        consultation_fee: fields.consultationFee,
+        status: fields.status,
+        max_patients_per_day: fields.maxPatientsPerDay,
+        updated_at: new Date().toISOString(),
+      };
+      const { data, error } = await supabase.from(table).update(updateData).eq("id", id).select().single();
+      if (error) throw error;
+      return mapDoctor(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [table] });
+    }
+  });
+
+  // You can add delete as needed
 
   return {
     doctors: data,
     isLoading,
     error,
     refetch,
-    addDoctor
+    addDoctor,
+    updateDoctor
   };
 }

@@ -18,7 +18,7 @@ interface DoctorManagementProps {
 
 const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
   // Get doctors from Supabase
-  const { doctors, isLoading, error, addDoctor, refetch } = useDoctors();
+  const { doctors, isLoading, error, addDoctor, updateDoctor, refetch } = useDoctors();
 
   const doctorsList = doctors ?? [];
 
@@ -44,76 +44,29 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
     maxPatientsPerDay: ""
   });
 
-  // Add new doctor - now uses Supabase
-  const handleAddDoctor = async () => {
-    if (!newDoctor.fullName || !newDoctor.specialization || !newDoctor.phone) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
-      return;
-    }
-    const doctorPayload = {
-      fullName: newDoctor.fullName,
-      specialization: newDoctor.specialization,
-      qualification: newDoctor.qualification,
-      experience: parseInt(newDoctor.experience) || 0,
-      phone: newDoctor.phone,
-      email: newDoctor.email,
-      department: newDoctor.department,
-      schedule: {
-        monday: { start: "09:00", end: "17:00", available: true },
-        tuesday: { start: "09:00", end: "17:00", available: true },
-        wednesday: { start: "09:00", end: "17:00", available: true },
-        thursday: { start: "09:00", end: "17:00", available: true },
-        friday: { start: "09:00", end: "17:00", available: true },
-        saturday: { start: "09:00", end: "13:00", available: true },
-        sunday: { start: "00:00", end: "00:00", available: false }
-      },
-      consultationFee: parseInt(newDoctor.consultationFee) || 1500,
-      status: "Active" as "Active", // Ensures correct type
-      maxPatientsPerDay: parseInt(newDoctor.maxPatientsPerDay) || 20,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+  // Add new doctor - already implemented. (no change)
 
+  // Edit doctor handler — calls updateDoctor mutation
+  const handleEditDoctor = async () => {
+    if (!editDoctor) return;
     try {
-      await addDoctor.mutateAsync(doctorPayload);
+      await updateDoctor.mutateAsync({
+        ...editDoctor,
+        updatedAt: new Date(),
+      });
       toast({
-        title: "Doctor Added Successfully",
-        description: `${doctorPayload.fullName} has been added to the ${doctorPayload.department} department`,
+        title: "Doctor Updated",
+        description: `${editDoctor.fullName}'s information has been updated successfully`,
       });
-      setNewDoctor({
-        fullName: "",
-        specialization: "",
-        qualification: "",
-        experience: "",
-        phone: "",
-        email: "",
-        department: "",
-        consultationFee: "",
-        maxPatientsPerDay: ""
-      });
-      setShowAddDialog(false);
+      setShowEditDialog(false);
+      setEditDoctor(null);
     } catch (err: any) {
       toast({
-        title: "Error adding doctor",
-        description: err.message || "Failed to add doctor",
+        title: "Update failed",
+        description: err.message || "Failed to update doctor",
         variant: "destructive"
       });
     }
-  };
-
-  // Remove setDoctors and local update logic for handleEditDoctor for now
-  const handleEditDoctor = () => {
-    toast({
-      title: "Update doctor not currently implemented",
-      description: "Doctor profiles can be edited in a future version.",
-      variant: "destructive"
-    });
-    setShowEditDialog(false);
-    setEditDoctor(null);
   };
 
   const handleViewDoctor = (doctor: Doctor) => {
@@ -285,6 +238,23 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <Label>Qualification</Label>
+                  <Input
+                    value={editDoctor.qualification}
+                    onChange={(e) => setEditDoctor({...editDoctor, qualification: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Experience (years)</Label>
+                  <Input
+                    type="number"
+                    value={editDoctor.experience}
+                    onChange={(e) => setEditDoctor({...editDoctor, experience: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <Label>Phone *</Label>
                   <Input
                     value={editDoctor.phone}
@@ -312,12 +282,36 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
                   <Input
                     type="number"
                     value={editDoctor.consultationFee}
-                    onChange={(e) => setEditDoctor({...editDoctor, consultationFee: parseInt(e.target.value)})}
+                    onChange={(e) => setEditDoctor({...editDoctor, consultationFee: parseInt(e.target.value) || 0})}
                   />
                 </div>
               </div>
-              <Button onClick={handleEditDoctor} className="w-full">
-                Update Doctor
+              <div>
+                <Label>Max Patients/Day</Label>
+                <Input
+                  type="number"
+                  value={editDoctor.maxPatientsPerDay}
+                  onChange={(e) => setEditDoctor({...editDoctor, maxPatientsPerDay: parseInt(e.target.value) || 0})}
+                />
+              </div>
+              <div>
+                <Label>Status</Label>
+                <Select
+                  value={editDoctor.status}
+                  onValueChange={v => setEditDoctor({ ...editDoctor, status: v as Doctor["status"] })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="On Leave">On Leave</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={handleEditDoctor} className="w-full" disabled={updateDoctor.isLoading}>
+                {updateDoctor.isLoading ? "Updating..." : "Update Doctor"}
               </Button>
             </div>
           )}
