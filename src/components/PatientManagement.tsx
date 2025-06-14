@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, Edit, UserCheck, Eye } from "lucide-react";
+import { Search, Plus, Edit, UserCheck, Eye, Trash } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/types/hospital";
 import { usePatients } from "@/hooks/usePatients";
@@ -188,14 +188,21 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
     }
   };
 
-  // Delete patient handler
+  // Delete patient handler (put status as "Discharged")
   const handleDeletePatient = async (patientId: string) => {
     if (!window.confirm("Are you sure you want to delete this patient? This cannot be undone.")) return;
     try {
-      await updatePatient.mutateAsync({ ...patients?.find(p => p.id === patientId), status: "Inactive", updatedAt: new Date() });
+      const patient = patients?.find(p => p.id === patientId);
+      if (patient) {
+        await updatePatient.mutateAsync({
+          ...patient,
+          status: "Discharged", // Only allow valid values
+          updatedAt: new Date(),
+        });
+      }
       toast({
         title: "Patient Deleted",
-        description: `Patient has been marked as inactive.`,
+        description: `Patient has been marked as discharged.`,
       });
       refetch();
     } catch (error: any) {

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, FileText, Printer, Download } from "lucide-react";
+import { Search, Plus, FileText, Printer, Download, Trash } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -412,21 +412,23 @@ const FaceSheet = ({ userRole }: FaceSheetProps) => {
     }
   };
 
+  // Replace handleDeleteFaceSheet with inline logic using Trash icon
   const handleDeleteFaceSheet = async (faceSheetId: string) => {
     if (!window.confirm("Are you sure you want to delete this face sheet? This cannot be undone.")) return;
-    try {
-      await deleteFaceSheet.mutateAsync(faceSheetId);
-      toast({
-        title: "Face Sheet Deleted",
-        description: `Face sheet has been deleted.`,
-      });
-      refetch();
-    } catch (error: any) {
+    setFaceSheets(current => current.filter(s => s.id !== faceSheetId));
+    const { error } = await supabase.from("face_sheets").delete().eq("id", faceSheetId);
+    if (error) {
       toast({
         title: "Error",
         description: error.message,
         variant: "destructive"
       });
+    } else {
+      toast({
+        title: "Face Sheet Deleted",
+        description: "Face sheet has been deleted.",
+      });
+      // No refetch required since we filter locally above.
     }
   };
 
@@ -753,15 +755,7 @@ const FaceSheet = ({ userRole }: FaceSheetProps) => {
                       className="border border-[#102042] text-[#102042] hover:bg-[#102042]/10"
                       title="Delete Face Sheet"
                     >
-                      <span className="sr-only">Delete</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                        <span>Delete</span>
-                        <span>
-                          <svg width="18" height="18" fill="none" stroke="#102042" strokeWidth="2" viewBox="0 0 24 24">
-                            <use href="#lucide-delete" />
-                          </svg>
-                        </span>
-                      </span>
+                      <Trash className="h-5 w-5 text-red-600" />
                     </Button>
                   </TableCell>
                 </TableRow>

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, Edit, Stethoscope, Clock, Eye } from "lucide-react";
+import { Search, Plus, Edit, Stethoscope, Clock, Eye, Trash } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Doctor } from "@/types/hospital";
 import { useDoctors } from "@/hooks/useDoctors";
@@ -566,18 +566,9 @@ const DoctorManagement = ({ userRole }: DoctorManagementProps) => {
                       variant="outline" 
                       size="sm"
                       onClick={() => handleDeleteDoctor(doctor.id)}
-                      className="border border-[#102042] text-[#102042] hover:bg-[#102042]/10"
                       title="Delete Doctor"
                     >
-                      <span className="sr-only">Delete</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                        <span>Delete</span>
-                        <span>
-                          <svg width="18" height="18" fill="none" stroke="#102042" strokeWidth="2" viewBox="0 0 24 24">
-                            <use href="#lucide-delete" />
-                          </svg>
-                        </span>
-                      </span>
+                      <Trash className="h-5 w-5 text-red-600" />
                     </Button>
                   </TableCell>
                 </TableRow>
