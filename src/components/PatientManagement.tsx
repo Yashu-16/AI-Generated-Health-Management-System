@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, Edit, UserCheck, Eye, Trash } from "lucide-react";
+import { Search, Plus, Edit, UserCheck, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/types/hospital";
 import { usePatients } from "@/hooks/usePatients";
@@ -183,28 +183,6 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       toast({
         title: "Discharge failed",
         description: err.message || "Failed to discharge",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Delete patient handler - actually deletes patient from database and updates UI
-  const handleDeletePatient = async (patientId: string) => {
-    if (!window.confirm("Are you sure you want to delete this patient? This cannot be undone.")) return;
-    try {
-      // Delete patient from database (using Supabase directly)
-      const { error } = await supabase.from("patients").delete().eq("id", patientId);
-      if (error) throw error;
-      toast({
-        title: "Patient Deleted",
-        description: "Patient record deleted successfully.",
-      });
-      // Refetch patient list to update UI (ensure no stale state)
-      refetch();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message ?? "Failed to delete patient",
         variant: "destructive"
       });
     }
@@ -630,7 +608,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                     </Badge>
                   </TableCell>
                   <TableCell>{patient.admissionDate.toLocaleDateString()}</TableCell>
-                  <TableCell className="space-x-2">
+                  <TableCell className="space-x-2 flex">
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -654,16 +632,6 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                         <UserCheck className="h-4 w-4" />
                       </Button>
                     )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeletePatient(patient.id)}
-                      className="p-2 border border-[#102042] hover:bg-red-100"
-                      title="Delete Patient"
-                      aria-label="Delete Patient"
-                    >
-                      <Trash className="h-4 w-4 text-red-600" />
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
