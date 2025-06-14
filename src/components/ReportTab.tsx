@@ -1,8 +1,9 @@
+
 import React, { useMemo, useState } from "react";
-import { format, isSameDay, isSameMonth, isSameYear, getYear, getMonth, startOfDay, parseISO } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { useInvoices } from "@/hooks/useInvoices";
 import { usePatients } from "@/hooks/usePatients";
-import { CalendarDays, List, Table as TableIcon, Filter } from "lucide-react";
+import { CalendarDays, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -15,7 +16,6 @@ import {
   Table,
   TableHeader,
   TableBody,
-  TableFooter,
   TableHead,
   TableRow,
   TableCell,
@@ -26,7 +26,8 @@ import { cn } from "@/lib/utils";
 type FilterType = "date" | "month" | "year";
 
 interface ReportRow {
-  period: string; // date, month, or year string
+  period: string;        // ISO key for computation (yyyy-MM-dd or yyyy-MM or yyyy)
+  periodLabel: string;   // Human-readable label for display
   totalRevenue: number;
   patientCount: number;
   admitted: number;
@@ -49,11 +50,11 @@ export default function ReportTab() {
 
     let grouped: { [key: string]: ReportRow } = {};
 
-    // Helper to create row if doesn't exist
-    function getOrInitRow(key: string, periodLabel: string) {
+    function getOrInitRow(key: string, label: string) {
       if (!grouped[key]) {
         grouped[key] = {
-          period: periodLabel,
+          period: key,
+          periodLabel: label,
           totalRevenue: 0,
           patientCount: 0,
           admitted: 0,
@@ -64,21 +65,20 @@ export default function ReportTab() {
       return grouped[key];
     }
 
-    // GROUPING BASED ON FILTER TYPE
     if (filterType === "date") {
-      // For each invoice, group by date
       invoices.forEach(inv => {
-        const d = inv.issueDate instanceof Date ? inv.issueDate : parseISO(inv.issueDate as unknown as string);
+        const d = inv.issueDate instanceof Date ? inv.issueDate : parseISO(String(inv.issueDate));
         const key = format(d, "yyyy-MM-dd");
-        const row = getOrInitRow(key, format(d, "PPP"));
+        const label = format(d, "PPP");
+        const row = getOrInitRow(key, label);
         row.totalRevenue += inv.total;
       });
-      // For each patient, group by admissionDate
       patients.forEach(p => {
         if (!p.admissionDate) return;
-        const d = p.admissionDate instanceof Date ? p.admissionDate : parseISO(p.admissionDate as unknown as string);
+        const d = p.admissionDate instanceof Date ? p.admissionDate : parseISO(String(p.admissionDate));
         const key = format(d, "yyyy-MM-dd");
-        const row = getOrInitRow(key, format(d, "PPP"));
+        const label = format(d, "PPP");
+        const row = getOrInitRow(key, label);
         row.patientCount += 1;
         if (p.status === "Admitted") row.admitted += 1;
         if (p.status === "Discharged") row.discharged += 1;
@@ -86,16 +86,18 @@ export default function ReportTab() {
       });
     } else if (filterType === "month") {
       invoices.forEach(inv => {
-        const d = inv.issueDate instanceof Date ? inv.issueDate : parseISO(inv.issueDate as unknown as string);
+        const d = inv.issueDate instanceof Date ? inv.issueDate : parseISO(String(inv.issueDate));
         const key = format(d, "yyyy-MM");
-        const row = getOrInitRow(key, format(d, "LLLL yyyy"));
+        const label = format(d, "LLLL yyyy");
+        const row = getOrInitRow(key, label);
         row.totalRevenue += inv.total;
       });
       patients.forEach(p => {
         if (!p.admissionDate) return;
-        const d = p.admissionDate instanceof Date ? p.admissionDate : parseISO(p.admissionDate as unknown as string);
+        const d = p.admissionDate instanceof Date ? p.admissionDate : parseISO(String(p.admissionDate));
         const key = format(d, "yyyy-MM");
-        const row = getOrInitRow(key, format(d, "LLLL yyyy"));
+        const label = format(d, "LLLL yyyy");
+        const row = getOrInitRow(key, label);
         row.patientCount += 1;
         if (p.status === "Admitted") row.admitted += 1;
         if (p.status === "Discharged") row.discharged += 1;
@@ -103,16 +105,18 @@ export default function ReportTab() {
       });
     } else if (filterType === "year") {
       invoices.forEach(inv => {
-        const d = inv.issueDate instanceof Date ? inv.issueDate : parseISO(inv.issueDate as unknown as string);
+        const d = inv.issueDate instanceof Date ? inv.issueDate : parseISO(String(inv.issueDate));
         const key = format(d, "yyyy");
-        const row = getOrInitRow(key, key);
+        const label = key;
+        const row = getOrInitRow(key, label);
         row.totalRevenue += inv.total;
       });
       patients.forEach(p => {
         if (!p.admissionDate) return;
-        const d = p.admissionDate instanceof Date ? p.admissionDate : parseISO(p.admissionDate as unknown as string);
+        const d = p.admissionDate instanceof Date ? p.admissionDate : parseISO(String(p.admissionDate));
         const key = format(d, "yyyy");
-        const row = getOrInitRow(key, key);
+        const label = key;
+        const row = getOrInitRow(key, label);
         row.patientCount += 1;
         if (p.status === "Admitted") row.admitted += 1;
         if (p.status === "Discharged") row.discharged += 1;
@@ -120,30 +124,27 @@ export default function ReportTab() {
       });
     }
 
-    // Apply Filter: Only show periods matching picker
+    // Apply Filter
     let filteredRows = Object.values(grouped);
+
     if (filterType === "date" && selectedDate) {
       const key = format(selectedDate, "yyyy-MM-dd");
-      filteredRows = filteredRows.filter(r => format(parseISO(r.period), "yyyy-MM-dd") === key || r.period === format(selectedDate, "PPP"));
+      filteredRows = filteredRows.filter(r => r.period === key);
     }
     if (filterType === "month" && selectedMonth) {
       const key = format(selectedMonth, "yyyy-MM");
-      filteredRows = filteredRows.filter(r => format(parseISO(r.period + "-01"), "yyyy-MM") === key || r.period === format(selectedMonth, "LLLL yyyy"));
+      filteredRows = filteredRows.filter(r => r.period === key);
     }
     if (filterType === "year" && selectedYear) {
       const key = format(selectedYear, "yyyy");
       filteredRows = filteredRows.filter(r => r.period === key);
     }
 
-    // Descending sort (latest on top)
+    // Sort latest at top
     if (filterType === "date") {
-      filteredRows.sort((a, b) =>
-        new Date(a.period) < new Date(b.period) ? 1 : -1
-      );
+      filteredRows.sort((a, b) => (a.period < b.period ? 1 : -1));
     } else if (filterType === "month") {
-      filteredRows.sort((a, b) =>
-        new Date(a.period + "-01") < new Date(b.period + "-01") ? 1 : -1
-      );
+      filteredRows.sort((a, b) => (a.period < b.period ? 1 : -1));
     } else if (filterType === "year") {
       filteredRows.sort((a, b) => (a.period < b.period ? 1 : -1));
     }
@@ -270,7 +271,7 @@ export default function ReportTab() {
               ) : (
                 tableData.map((row, i) => (
                   <TableRow key={row.period + i}>
-                    <TableCell>{row.period}</TableCell>
+                    <TableCell>{row.periodLabel}</TableCell>
                     <TableCell>₹{row.totalRevenue.toLocaleString("en-IN")}</TableCell>
                     <TableCell>{row.patientCount}</TableCell>
                     <TableCell>{row.admitted}</TableCell>
