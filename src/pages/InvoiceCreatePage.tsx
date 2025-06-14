@@ -18,7 +18,7 @@ const defaultItem: InvoiceItem = {
   description: "",
   category: "Consultation",
   quantity: 1,
-  unitPrice: "",
+  unitPrice: 0,
   total: 0,
 };
 

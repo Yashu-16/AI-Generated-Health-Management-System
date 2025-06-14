@@ -42,7 +42,7 @@ const InvoiceItemsEditor = ({ items, setItems }: InvoiceItemsEditorProps) => {
       description: "",
       category: "Consultation",
       quantity: 1,
-      unitPrice: "",
+      unitPrice: 0,
       total: 0,
     }]);
   };
@@ -96,8 +96,8 @@ const InvoiceItemsEditor = ({ items, setItems }: InvoiceItemsEditorProps) => {
               type="number"
               min="0"
               step="0.01"
-              value={item.unitPrice}
-              onChange={(e) => updateItem(index, 'unitPrice', e.target.value)}
+              value={item.unitPrice || ""}
+              onChange={(e) => updateItem(index, 'unitPrice', Number(e.target.value) || 0)}
               placeholder="0.00"
             />
           </div>
