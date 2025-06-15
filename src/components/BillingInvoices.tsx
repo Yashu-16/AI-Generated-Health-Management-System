@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -506,191 +505,193 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
 
   if (showCreateForm || showEditForm) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center space-x-4">
-          <Button 
-            onClick={() => {
-              setShowCreateForm(false);
-              setShowEditForm(false);
-              setSelectedInvoice(null);
-              resetCreateForm();
-            }} 
-            variant="outline"
-            size="sm"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Invoices
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              {showEditForm ? "Edit Invoice" : "Create New Invoice"}
-            </h1>
-            <p className="text-muted-foreground">
-              {showEditForm ? "Update the invoice details" : "Fill in the details to create a new invoice"}
-            </p>
+      <div className="flex justify-center items-center min-h-[85vh] w-full">
+        <div className="space-y-6 w-full max-w-5xl">
+          <div className="flex items-center space-x-4">
+            <Button 
+              onClick={() => {
+                setShowCreateForm(false);
+                setShowEditForm(false);
+                setSelectedInvoice(null);
+                resetCreateForm();
+              }} 
+              variant="outline"
+              size="sm"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Invoices
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">
+                {showEditForm ? "Edit Invoice" : "Create New Invoice"}
+              </h1>
+              <p className="text-muted-foreground">
+                {showEditForm ? "Update the invoice details" : "Fill in the details to create a new invoice"}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <Card className="max-w-4xl">
-          <CardContent className="pt-6">
-            <form className="space-y-6" onSubmit={showEditForm ? handleSubmitEditForm : handleSubmitCreateForm}>
-              <div className="grid grid-cols-2 gap-4">
+          <Card className="max-w-4xl mx-auto">
+            <CardContent className="pt-6">
+              <form className="space-y-6" onSubmit={showEditForm ? handleSubmitEditForm : handleSubmitCreateForm}>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="patient">Patient *</Label>
+                    <Select
+                      value={patientId}
+                      onValueChange={setPatientId}
+                      disabled={patientsLoading}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={patientsLoading ? "Loading..." : "Select a patient"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {patients?.map(pt => (
+                          <SelectItem key={pt.id} value={pt.id}>{pt.fullName}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="invoiceNumber">Invoice Number *</Label>
+                    <Input
+                      id="invoiceNumber"
+                      value={invoiceNumber}
+                      onChange={e => setInvoiceNumber(e.target.value)}
+                      required
+                      readOnly={!showEditForm}
+                      className={!showEditForm ? "bg-gray-50" : ""}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="issueDate">Issue Date *</Label>
+                    <Input
+                      id="issueDate"
+                      type="date"
+                      value={issueDate}
+                      onChange={e => setIssueDate(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="dueDate">Due Date *</Label>
+                    <Input
+                      id="dueDate"
+                      type="date"
+                      value={dueDate}
+                      onChange={e => setDueDate(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <Label htmlFor="patient">Patient *</Label>
-                  <Select
-                    value={patientId}
-                    onValueChange={setPatientId}
-                    disabled={patientsLoading}
-                    required
+                  <Label>Invoice Items *</Label>
+                  <InvoiceItemsEditor items={items} setItems={setItems} />
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
+                  <div>
+                    <Label htmlFor="subtotal">Subtotal</Label>
+                    <Input id="subtotal" value={subtotal} disabled readOnly />
+                  </div>
+                  <div>
+                    <Label htmlFor="tax">Tax</Label>
+                    <Input
+                      id="tax"
+                      type="number"
+                      min={0}
+                      value={tax}
+                      onChange={e => setTax(Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="discount">Discount</Label>
+                    <Input
+                      id="discount"
+                      type="number"
+                      min={0}
+                      value={discount}
+                      onChange={e => setDiscount(Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="total">Total</Label>
+                    <Input id="total" value={total} disabled readOnly />
+                  </div>
+                  <div>
+                    <Label htmlFor="status">Status</Label>
+                    <Select value={status} onValueChange={v => setStatus(v as any)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="Paid">Paid</SelectItem>
+                        <SelectItem value="Overdue">Overdue</SelectItem>
+                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="paymentMethod">Payment Method</Label>
+                    <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select payment method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Cash">Cash</SelectItem>
+                        <SelectItem value="Card">Card</SelectItem>
+                        <SelectItem value="Insurance">Insurance</SelectItem>
+                        <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                        <SelectItem value="UPI">UPI</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="paymentDate">Payment Date</Label>
+                    <Input
+                      id="paymentDate"
+                      type="date"
+                      value={paymentDate}
+                      onChange={e => setPaymentDate(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={notes}
+                    onChange={e => setNotes(e.target.value)}
+                    placeholder="Add any notes (optional)..."
+                  />
+                </div>
+                <div className="flex gap-4">
+                  <Button type="submit" className="flex-1">
+                    {showEditForm ? "Update Invoice" : "Create Invoice"}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setShowCreateForm(false);
+                      setShowEditForm(false);
+                      setSelectedInvoice(null);
+                      resetCreateForm();
+                    }}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder={patientsLoading ? "Loading..." : "Select a patient"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {patients?.map(pt => (
-                        <SelectItem key={pt.id} value={pt.id}>{pt.fullName}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    Cancel
+                  </Button>
                 </div>
-                <div>
-                  <Label htmlFor="invoiceNumber">Invoice Number *</Label>
-                  <Input
-                    id="invoiceNumber"
-                    value={invoiceNumber}
-                    onChange={e => setInvoiceNumber(e.target.value)}
-                    required
-                    readOnly={!showEditForm}
-                    className={!showEditForm ? "bg-gray-50" : ""}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="issueDate">Issue Date *</Label>
-                  <Input
-                    id="issueDate"
-                    type="date"
-                    value={issueDate}
-                    onChange={e => setIssueDate(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="dueDate">Due Date *</Label>
-                  <Input
-                    id="dueDate"
-                    type="date"
-                    value={dueDate}
-                    onChange={e => setDueDate(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label>Invoice Items *</Label>
-                <InvoiceItemsEditor items={items} setItems={setItems} />
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
-                <div>
-                  <Label htmlFor="subtotal">Subtotal</Label>
-                  <Input id="subtotal" value={subtotal} disabled readOnly />
-                </div>
-                <div>
-                  <Label htmlFor="tax">Tax</Label>
-                  <Input
-                    id="tax"
-                    type="number"
-                    min={0}
-                    value={tax}
-                    onChange={e => setTax(Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="discount">Discount</Label>
-                  <Input
-                    id="discount"
-                    type="number"
-                    min={0}
-                    value={discount}
-                    onChange={e => setDiscount(Number(e.target.value))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="total">Total</Label>
-                  <Input id="total" value={total} disabled readOnly />
-                </div>
-                <div>
-                  <Label htmlFor="status">Status</Label>
-                  <Select value={status} onValueChange={v => setStatus(v as any)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Pending">Pending</SelectItem>
-                      <SelectItem value="Paid">Paid</SelectItem>
-                      <SelectItem value="Overdue">Overdue</SelectItem>
-                      <SelectItem value="Cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="paymentMethod">Payment Method</Label>
-                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select payment method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Cash">Cash</SelectItem>
-                      <SelectItem value="Card">Card</SelectItem>
-                      <SelectItem value="Insurance">Insurance</SelectItem>
-                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                      <SelectItem value="UPI">UPI</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="paymentDate">Payment Date</Label>
-                  <Input
-                    id="paymentDate"
-                    type="date"
-                    value={paymentDate}
-                    onChange={e => setPaymentDate(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={notes}
-                  onChange={e => setNotes(e.target.value)}
-                  placeholder="Add any notes (optional)..."
-                />
-              </div>
-              <div className="flex gap-4">
-                <Button type="submit" className="flex-1">
-                  {showEditForm ? "Update Invoice" : "Create Invoice"}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => {
-                    setShowCreateForm(false);
-                    setShowEditForm(false);
-                    setSelectedInvoice(null);
-                    resetCreateForm();
-                  }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
