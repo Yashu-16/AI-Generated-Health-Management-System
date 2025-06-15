@@ -121,8 +121,15 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       return;
     }
 
-    // Use explicitly chosen admission date or fallback to today(IST)
-    const admissionDate = newPatient.admissionDate || parseISTDateString(getLocalTodayDateString());
+    // Always format the selected date as YYYY-MM-DD string
+    let admissionDateString = undefined;
+    if (newPatient.admissionDate instanceof Date && !isNaN(newPatient.admissionDate.getTime())) {
+      admissionDateString = newPatient.admissionDate.toISOString().slice(0, 10);
+    } else if (typeof newPatient.admissionDate === "string") {
+      admissionDateString = newPatient.admissionDate;
+    } else {
+      admissionDateString = getLocalTodayDateString();
+    }
 
     const patient: Partial<Patient> = {
       fullName: newPatient.fullName,
@@ -137,7 +144,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       allergies: Array.isArray(newPatient.allergies)
         ? newPatient.allergies.filter((a: any) => !!a && typeof a === "string")
         : [],
-      admissionDate: admissionDate, // <-- Date selected
+      admissionDate: admissionDateString, // Always send YYYY-MM-DD string
       status: "Admitted",
       assignedDoctorId: newPatient.assignedDoctorId || null,
       assignedRoomId: newPatient.assignedRoomId || null,

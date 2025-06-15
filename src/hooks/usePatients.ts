@@ -1,4 +1,3 @@
-
 import { useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,8 +18,32 @@ const mapPatient = (row: any): Patient => ({
   emergencyPhone: row.emergency_phone,
   bloodType: row.blood_type,
   allergies: row.allergies ?? [],
-  admissionDate: row.admission_date ? new Date(row.admission_date) : undefined, // Remove fallback to new Date()
-  dischargeDate: row.discharge_date ? new Date(row.discharge_date) : undefined,
+  admissionDate: row.admission_date
+    ? (() => {
+        if (typeof row.admission_date === "string") {
+          // Format is usually "YYYY-MM-DD" or ISO, so parse explicitly as local date
+          // Be defensive: if string is in "YYYY-MM-DD", use split for consistent results
+          const [y, m, d] = row.admission_date.split("-");
+          return new Date(Number(y), Number(m) - 1, Number(d));
+        } else if (row.admission_date instanceof Date) {
+          return row.admission_date;
+        } else {
+          return undefined;
+        }
+      })()
+    : undefined,
+  dischargeDate: row.discharge_date
+    ? (() => {
+        if (typeof row.discharge_date === "string") {
+          const [y, m, d] = row.discharge_date.split("-");
+          return new Date(Number(y), Number(m) - 1, Number(d));
+        } else if (row.discharge_date instanceof Date) {
+          return row.discharge_date;
+        } else {
+          return undefined;
+        }
+      })()
+    : undefined,
   status: row.status,
   assignedDoctorId: row.assigned_doctor_id,
   assignedRoomId: row.assigned_room_id,
@@ -148,4 +171,3 @@ export function usePatients() {
     dischargePatient,
   };
 }
-
