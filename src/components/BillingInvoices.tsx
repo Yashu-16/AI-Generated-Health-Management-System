@@ -506,9 +506,9 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   if (showCreateForm || showEditForm) {
     return (
       <div className="flex justify-center items-center min-h-[85vh] w-full">
-        <div className="space-y-6 w-full max-w-5xl">
-          {/* Header with smaller button, aligned with heading/description */}
-          <div className="flex items-center gap-4 mb-2">
+        <div className="space-y-4 w-full max-w-5xl">
+          {/* Back Button Row */}
+          <div className="w-full flex justify-start mb-0">
             <Button 
               onClick={() => {
                 setShowCreateForm(false);
@@ -523,16 +523,16 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Invoices
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight leading-tight">
-                {showEditForm ? "Edit Invoice" : "Create New Invoice"}
-              </h1>
-              <p className="text-muted-foreground leading-tight">
-                {showEditForm ? "Update the invoice details" : "Fill in the details to create a new invoice"}
-              </p>
-            </div>
           </div>
-
+          {/* Centered Heading and Description */}
+          <div className="w-full flex flex-col items-center text-center mb-2">
+            <h1 className="text-3xl font-bold tracking-tight leading-tight">
+              {showEditForm ? "Edit Invoice" : "Create New Invoice"}
+            </h1>
+            <p className="text-muted-foreground leading-tight">
+              {showEditForm ? "Update the invoice details" : "Fill in the details to create a new invoice"}
+            </p>
+          </div>
           <Card className="max-w-4xl mx-auto">
             <CardContent className="pt-6">
               <form className="space-y-6" onSubmit={showEditForm ? handleSubmitEditForm : handleSubmitCreateForm}>
