@@ -1,12 +1,10 @@
 
+import { formatInTimeZone } from "date-fns-tz/formatInTimeZone";
+
 /**
- * Returns today's date as "YYYY-MM-DD" in the user's local timezone.
+ * Returns today's date as "YYYY-MM-DD" in Asia/Kolkata (IST) timezone.
  */
 export function getLocalTodayDateString(): string {
-  const now = new Date();
-  // This gives "YYYY-MM-DD" for local time, compatible with most date pickers/inputs
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  // Use date-fns-tz to get the date in Asia/Kolkata timezone
+  return formatInTimeZone(new Date(), "Asia/Kolkata", "yyyy-MM-dd");
 }
