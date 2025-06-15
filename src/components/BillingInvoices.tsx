@@ -506,35 +506,35 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
   if (showCreateForm || showEditForm) {
     return (
       <div className="flex justify-center items-center min-h-[85vh] w-full">
-        <div className="space-y-4 w-full max-w-5xl">
-          {/* Back Button Row */}
-          <div className="w-full flex justify-start mb-0">
-            <Button 
-              onClick={() => {
-                setShowCreateForm(false);
-                setShowEditForm(false);
-                setSelectedInvoice(null);
-                resetCreateForm();
-              }} 
-              variant="outline"
-              size="sm"
-              className="px-3 py-1"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Invoices
-            </Button>
-          </div>
-          {/* Centered Heading and Description */}
-          <div className="w-full flex flex-col items-center text-center mb-2">
-            <h1 className="text-3xl font-bold tracking-tight leading-tight">
-              {showEditForm ? "Edit Invoice" : "Create New Invoice"}
-            </h1>
-            <p className="text-muted-foreground leading-tight">
-              {showEditForm ? "Update the invoice details" : "Fill in the details to create a new invoice"}
-            </p>
-          </div>
+        <div className="w-full max-w-5xl">
           <Card className="max-w-4xl mx-auto">
             <CardContent className="pt-6">
+              {/* Back button inside the card, flush left */}
+              <div className="mb-2">
+                <Button 
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setShowEditForm(false);
+                    setSelectedInvoice(null);
+                    resetCreateForm();
+                  }} 
+                  variant="outline"
+                  size="sm"
+                  className="px-3 py-1"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Invoices
+                </Button>
+              </div>
+              {/* Centered Heading and Description */}
+              <div className="w-full flex flex-col items-center text-center mb-2">
+                <h1 className="text-3xl font-bold tracking-tight leading-tight">
+                  {showEditForm ? "Edit Invoice" : "Create New Invoice"}
+                </h1>
+                <p className="text-muted-foreground leading-tight">
+                  {showEditForm ? "Update the invoice details" : "Fill in the details to create a new invoice"}
+                </p>
+              </div>
               <form className="space-y-6" onSubmit={showEditForm ? handleSubmitEditForm : handleSubmitCreateForm}>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
