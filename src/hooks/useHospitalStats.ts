@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Patient, Invoice, Room } from "@/types/hospital";
@@ -88,17 +87,21 @@ export function useHospitalStats() {
         updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
       }));
 
-      // Fetch users for "active staff" count (doctors or staff, active)
+      // Fetch users for active doctors and active staff counts
       const { data: usersRaw, error: usersError } = await supabase
         .from("users")
         .select("*");
       if (usersError) throw usersError;
-      const activeStaff =
-        (usersRaw ?? []).filter(
-          (u: any) =>
-            (u.role === "doctor" || u.role === "staff") &&
-            u.is_active === true // Only active users
-        ).length;
+
+      // Count doctors that are active
+      const activeDoctors = (usersRaw ?? []).filter(
+        (u: any) => u.role === "doctor" && u.is_active === true
+      ).length;
+
+      // Count staff that are active
+      const activeStaff = (usersRaw ?? []).filter(
+        (u: any) => u.role === "staff" && u.is_active === true
+      ).length;
 
       // Fetch today's appointments
       const today = new Date();
@@ -106,8 +109,6 @@ export function useHospitalStats() {
       const MM = String(today.getMonth() + 1).padStart(2, "0");
       const DD = String(today.getDate()).padStart(2, "0");
       const todayString = `${YYYY}-${MM}-${DD}`;
-
-      // Appointments where appointment_date is today
       const { data: appointmentsRaw, error: appointmentsError } = await supabase
         .from("appointments")
         .select("id, appointment_date");
@@ -177,11 +178,11 @@ export function useHospitalStats() {
         todaysAppointments,
         totalRevenue,
         monthlyRevenue,
-        activeStaff,
+        activeDoctors,
+        activeStaff, // now shows only staff (non-doctor)
         criticalPatients
       };
     },
     refetchInterval: 5000, // Poll every 5 seconds
   });
 }
-

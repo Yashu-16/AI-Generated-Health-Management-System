@@ -69,7 +69,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* HEADER with navy background and logo */}
+      {/* HEADER ... */}
       <div className="border-b bg-[#14213d] shadow-sm">
         <div className="flex h-16 items-center justify-between px-6">
           <div className="flex items-center space-x-4">
@@ -118,7 +118,7 @@ const Index = () => {
                   </CardHeader>
                   <CardContent className="flex items-center space-x-4">
                     <UserCheck className="h-9 w-9 text-green-500" />
-                    <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.activeStaff}</div>
+                    <div className="text-3xl font-bold">{statsLoading ? "Loading..." : stats?.activeDoctors}</div>
                   </CardContent>
                 </Card>
 
@@ -163,8 +163,12 @@ const Index = () => {
                           <span className="text-lg font-bold text-blue-600">{stats?.totalPatients || 0}</span>
                         </div>
                         <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-medium">Active Doctors</span>
+                          <span className="text-lg font-bold text-green-600">{stats?.activeDoctors || 0}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                           <span className="text-sm font-medium">Active Staff</span>
-                          <span className="text-lg font-bold text-green-600">{stats?.activeStaff || 0}</span>
+                          <span className="text-lg font-bold text-amber-600">{stats?.activeStaff || 0}</span>
                         </div>
                         <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                           <span className="text-sm font-medium">Available Beds</span>
@@ -234,3 +238,4 @@ const Index = () => {
 };
 
 export default Index;
+
