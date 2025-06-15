@@ -87,11 +87,14 @@ export function useHospitalStats() {
         updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
       }));
 
-      // Fetch users for active doctors and active staff counts
+      // Fetch users for active doctors and staff
       const { data: usersRaw, error: usersError } = await supabase
         .from("users")
         .select("*");
       if (usersError) throw usersError;
+
+      // Debug: log entire usersRaw data returned
+      console.log("Fetched usersRaw:", usersRaw);
 
       // Count doctors that are active
       const activeDoctors = (usersRaw ?? []).filter(
@@ -102,6 +105,12 @@ export function useHospitalStats() {
       const activeStaff = (usersRaw ?? []).filter(
         (u: any) => u.role === "staff" && u.is_active === true
       ).length;
+
+      // Debug: log counts
+      console.log(
+        "Active Doctors:", activeDoctors,
+        "Active Staff:", activeStaff
+      );
 
       // Fetch today's appointments
       const today = new Date();
