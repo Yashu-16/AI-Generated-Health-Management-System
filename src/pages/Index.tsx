@@ -1,9 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Users, UserCheck, Bed, FileText, Plus, LayoutDashboard } from "lucide-react";
+import { CalendarDays, Users, UserCheck, Bed, FileText, Plus, LayoutDashboard, Hospital } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useHospitalStats } from "@/hooks/useHospitalStats";
 import PatientManagement from "@/components/PatientManagement";
@@ -68,13 +69,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="border-b bg-white shadow-sm">
+      {/* HEADER with navy background and logo */}
+      <div className="border-b bg-[#14213d] shadow-sm">
         <div className="flex h-16 items-center justify-between px-6">
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-gray-900">VISION MULTISPECIALTY HOSPITAL</h1>
-            <Badge variant="secondary" className="ml-2">
-              {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
-            </Badge>
+            {/* Logo and hospital name */}
+            <Hospital className="h-9 w-9 text-white mr-3" />
+            <h1 className="text-2xl font-bold text-white tracking-wide">VISION MULTISPECIALTY HOSPITAL</h1>
+            <Badge variant="secondary" className="ml-2">{userRole.charAt(0).toUpperCase() + userRole.slice(1)}</Badge>
           </div>
           <div className="flex items-center space-x-4">
             <Button variant="outline" onClick={handleSignOut}>
