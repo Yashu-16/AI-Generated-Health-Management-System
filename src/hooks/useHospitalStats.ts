@@ -88,6 +88,36 @@ export function useHospitalStats() {
         updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
       }));
 
+      // Fetch users for "active staff" count (doctors or staff, active)
+      const { data: usersRaw, error: usersError } = await supabase
+        .from("users")
+        .select("*");
+      if (usersError) throw usersError;
+      const activeStaff =
+        (usersRaw ?? []).filter(
+          (u: any) =>
+            (u.role === "doctor" || u.role === "staff") &&
+            u.is_active === true // Only active users
+        ).length;
+
+      // Fetch today's appointments
+      const today = new Date();
+      const YYYY = today.getFullYear();
+      const MM = String(today.getMonth() + 1).padStart(2, "0");
+      const DD = String(today.getDate()).padStart(2, "0");
+      const todayString = `${YYYY}-${MM}-${DD}`;
+
+      // Appointments where appointment_date is today
+      const { data: appointmentsRaw, error: appointmentsError } = await supabase
+        .from("appointments")
+        .select("id, appointment_date");
+      if (appointmentsError) throw appointmentsError;
+      const todaysAppointments =
+        (appointmentsRaw ?? []).filter((appt: any) => {
+          // appointment_date is returned as string "YYYY-MM-DD"
+          return appt.appointment_date === todayString;
+        }).length;
+
       // Compute stats
       // Total patients
       const totalPatients = patients.length;
@@ -98,7 +128,6 @@ export function useHospitalStats() {
       ).length;
 
       // Discharged today
-      const today = new Date();
       const dischargedToday = patients.filter(p => {
         if (!p.dischargeDate) return false;
         return (
@@ -118,9 +147,6 @@ export function useHospitalStats() {
       const occupiedBeds = rooms.reduce((sum, room) => sum + (room.currentOccupancy ?? 0), 0);
       const occupancyRate = totalBeds ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
 
-      // Today's Appointments (not implemented, fallback to 0)
-      const todaysAppointments = 0; // To implement fully: need to query 'appointments' table
-
       // Revenue: "today's" and this month's
       const isToday = (date: Date) =>
         date.getFullYear() === today.getFullYear() &&
@@ -138,9 +164,6 @@ export function useHospitalStats() {
       const monthlyRevenue = invoices
         .filter((inv) => inv.paymentDate && isCurrentMonth(inv.paymentDate))
         .reduce((sum, inv) => sum + Number(inv.total || 0), 0);
-
-      // Active staff (not implemented, fallback)
-      const activeStaff = 0;
 
       // Critical Patients
       const criticalPatients = patients.filter((p) => p.status === "Critical").length;
@@ -161,3 +184,4 @@ export function useHospitalStats() {
     refetchInterval: 5000, // Poll every 5 seconds
   });
 }
+
