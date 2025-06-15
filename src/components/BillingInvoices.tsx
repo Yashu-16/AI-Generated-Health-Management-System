@@ -507,7 +507,8 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
     return (
       <div className="flex justify-center items-center min-h-[85vh] w-full">
         <div className="space-y-6 w-full max-w-5xl">
-          <div className="flex items-center space-x-4">
+          {/* Header with smaller button, aligned with heading/description */}
+          <div className="flex items-center gap-4 mb-2">
             <Button 
               onClick={() => {
                 setShowCreateForm(false);
@@ -517,15 +518,16 @@ const BillingInvoices = ({ userRole }: BillingInvoicesProps) => {
               }} 
               variant="outline"
               size="sm"
+              className="px-3 py-1"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Invoices
             </Button>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">
+              <h1 className="text-3xl font-bold tracking-tight leading-tight">
                 {showEditForm ? "Edit Invoice" : "Create New Invoice"}
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground leading-tight">
                 {showEditForm ? "Update the invoice details" : "Fill in the details to create a new invoice"}
               </p>
             </div>
