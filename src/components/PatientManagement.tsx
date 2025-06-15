@@ -14,6 +14,11 @@ import { Patient } from "@/types/hospital";
 import { usePatients } from "@/hooks/usePatients";
 import { supabase } from "@/integrations/supabase/client";
 import AllergyAutocomplete from "./AllergyAutocomplete";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+
 import { getLocalTodayDateString } from "@/lib/getLocalDateString";
 
 interface PatientManagementProps {
@@ -36,6 +41,11 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
   const [rooms, setRooms] = useState<{ id: string; room_number: string }[]>([]);
 
   // Set selects to undefined by default for correct controlled usage
+  const parseISTDateString = (dateStr: string) => {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  };
+
   const [newPatient, setNewPatient] = useState({
     fullName: "",
     age: "",
@@ -51,6 +61,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
     insuranceInfo: "",
     assignedDoctorId: undefined as string | undefined,
     assignedRoomId: undefined as string | undefined,
+    admissionDate: parseISTDateString(getLocalTodayDateString()),
   });
 
   // Load patients from Supabase
@@ -84,6 +95,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       insuranceInfo: "",
       assignedDoctorId: undefined,
       assignedRoomId: undefined,
+      admissionDate: parseISTDateString(getLocalTodayDateString()),
     });
 
   // 1. Function to open View Patient Dialog
@@ -109,16 +121,8 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       return;
     }
 
-    // Use today's date string in IST, but convert to Date object to match Patient type
-    const todayLocalStr = getLocalTodayDateString();
-    // Parse YYYY-MM-DD as IST - create a Date object at midnight IST
-    const [year, month, day] = todayLocalStr.split("-").map(Number);
-    // Date constructor is in local time, so we create UTC midnight and then adjust to IST
-    // But for most use cases, we can construct new Date(year, monthIndex, day)
-    // But this is local time. To force IST, we can use Date.UTC then adjust.
-    // Let's create: new Date(Date.UTC(year, monthIndex, day, 0, 0, 0)); and then offset for IST (+5:30)
-    // But for Patient type (and DB), passing Date is enough.
-    const admissionDate = new Date(year, month - 1, day); // Local date, but will match IST for users in IST
+    // Use explicitly chosen admission date or fallback to today(IST)
+    const admissionDate = newPatient.admissionDate || parseISTDateString(getLocalTodayDateString());
 
     const patient: Partial<Patient> = {
       fullName: newPatient.fullName,
@@ -133,7 +137,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       allergies: Array.isArray(newPatient.allergies)
         ? newPatient.allergies.filter((a: any) => !!a && typeof a === "string")
         : [],
-      admissionDate: admissionDate, // Now a Date object, as required by Patient type
+      admissionDate: admissionDate, // <-- Date selected
       status: "Admitted",
       assignedDoctorId: newPatient.assignedDoctorId || null,
       assignedRoomId: newPatient.assignedRoomId || null,
@@ -258,6 +262,37 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                     />
                   </div>
                 </div>
+
+                <div>
+                  <Label htmlFor="admissionDate">Admission Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {newPatient.admissionDate
+                          ? format(newPatient.admissionDate, "yyyy-MM-dd")
+                          : <span>Pick a date</span>
+                        }
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={newPatient.admissionDate}
+                        onSelect={date =>
+                          setNewPatient({ ...newPatient, admissionDate: date ?? undefined })
+                        }
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                        disabled={date => date > new Date()}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="gender">Gender</Label>
