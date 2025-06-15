@@ -17,7 +17,7 @@ import AllergyAutocomplete from "./AllergyAutocomplete";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
+import { format, formatInTimeZone } from "date-fns-tz";
 
 import { getLocalTodayDateString } from "@/lib/getLocalDateString";
 
@@ -121,10 +121,10 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       return;
     }
 
-    // Always format the selected date as YYYY-MM-DD string
+    // Always format the selected date as YYYY-MM-DD string using Asia/Kolkata timezone
     let admissionDateString = undefined;
     if (newPatient.admissionDate instanceof Date && !isNaN(newPatient.admissionDate.getTime())) {
-      admissionDateString = newPatient.admissionDate.toISOString().slice(0, 10);
+      admissionDateString = formatInTimeZone(newPatient.admissionDate, "Asia/Kolkata", "yyyy-MM-dd");
     } else if (typeof newPatient.admissionDate === "string") {
       admissionDateString = newPatient.admissionDate;
     } else {
@@ -144,7 +144,7 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
       allergies: Array.isArray(newPatient.allergies)
         ? newPatient.allergies.filter((a: any) => !!a && typeof a === "string")
         : [],
-      admissionDate: admissionDateString, // Always send YYYY-MM-DD string
+      admissionDate: admissionDateString, // Now formatted using Asia/Kolkata
       status: "Admitted",
       assignedDoctorId: newPatient.assignedDoctorId || null,
       assignedRoomId: newPatient.assignedRoomId || null,
@@ -662,13 +662,13 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {/* Fix display for admissionDate: use date-fns/format! */}
+                    {/* PROPER date display: 
+                        - If string, show as is,
+                        - if Date, format as "yyyy-MM-dd" in Asia/Kolkata */}
                     {patient.admissionDate
-                      ? format(
-                          typeof patient.admissionDate === "string"
-                            ? new Date(patient.admissionDate)
-                            : patient.admissionDate,
-                          "yyyy-MM-dd"
+                      ? (typeof patient.admissionDate === "string"
+                          ? patient.admissionDate
+                          : formatInTimeZone(patient.admissionDate, "Asia/Kolkata", "yyyy-MM-dd")
                         )
                       : "N/A"}
                   </TableCell>
