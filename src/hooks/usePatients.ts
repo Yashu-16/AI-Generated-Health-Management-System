@@ -19,7 +19,7 @@ const mapPatient = (row: any): Patient => ({
   emergencyPhone: row.emergency_phone,
   bloodType: row.blood_type,
   allergies: row.allergies ?? [],
-  admissionDate: row.admission_date ? new Date(row.admission_date) : new Date(),
+  admissionDate: row.admission_date ? new Date(row.admission_date) : undefined, // Remove fallback to new Date()
   dischargeDate: row.discharge_date ? new Date(row.discharge_date) : undefined,
   status: row.status,
   assignedDoctorId: row.assigned_doctor_id,
@@ -53,7 +53,7 @@ export function usePatients() {
         // Already formatted as "YYYY-MM-DD"
         admissionDate = input.admissionDate;
       } else if (input.admissionDate instanceof Date) {
-        admissionDate = input.admissionDate.toISOString().slice(0, 10);
+        admissionDate = input.admissionDate.toISOString().slice(0, 10); // Always string YYYY-MM-DD
       }
 
       const insertData = {
@@ -101,7 +101,7 @@ export function usePatients() {
         emergency_phone: fields.emergencyPhone,
         blood_type: fields.bloodType,
         allergies: fields.allergies,
-        admission_date: fields.admissionDate?.toISOString()?.slice(0,10),
+        admission_date: fields.admissionDate instanceof Date ? fields.admissionDate.toISOString().slice(0,10) : fields.admissionDate,
         discharge_date: fields.dischargeDate ? fields.dischargeDate.toISOString()?.slice(0,10) : null,
         status: fields.status,
         assigned_doctor_id: fields.assignedDoctorId,
@@ -148,3 +148,4 @@ export function usePatients() {
     dischargePatient,
   };
 }
+

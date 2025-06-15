@@ -654,7 +654,17 @@ const PatientManagement = ({ userRole }: PatientManagementProps) => {
                       {patient.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{patient.admissionDate.toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    {/* Fix display for admissionDate: use date-fns/format! */}
+                    {patient.admissionDate
+                      ? format(
+                          typeof patient.admissionDate === "string"
+                            ? new Date(patient.admissionDate)
+                            : patient.admissionDate,
+                          "yyyy-MM-dd"
+                        )
+                      : "N/A"}
+                  </TableCell>
                   <TableCell className="space-x-2 flex">
                     <Button 
                       variant="outline" 
