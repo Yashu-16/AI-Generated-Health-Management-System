@@ -7,524 +7,14 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
   public: {
     Tables: {
-      appointments: {
-        Row: {
-          appointment_date: string | null
-          appointment_time: string | null
-          created_at: string | null
-          doctor_id: string | null
-          duration: number | null
-          fee: number | null
-          id: string
-          notes: string | null
-          patient_id: string | null
-          room_id: string | null
-          status: string | null
-          type: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          appointment_date?: string | null
-          appointment_time?: string | null
-          created_at?: string | null
-          doctor_id?: string | null
-          duration?: number | null
-          fee?: number | null
-          id?: string
-          notes?: string | null
-          patient_id?: string | null
-          room_id?: string | null
-          status?: string | null
-          type?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          appointment_date?: string | null
-          appointment_time?: string | null
-          created_at?: string | null
-          doctor_id?: string | null
-          duration?: number | null
-          fee?: number | null
-          id?: string
-          notes?: string | null
-          patient_id?: string | null
-          room_id?: string | null
-          status?: string | null
-          type?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "appointments_doctor_id_fkey"
-            columns: ["doctor_id"]
-            isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "appointments_patient_id_fkey"
-            columns: ["patient_id"]
-            isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "appointments_room_id_fkey"
-            columns: ["room_id"]
-            isOneToOne: false
-            referencedRelation: "rooms"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      doctors: {
-        Row: {
-          consultation_fee: number | null
-          created_at: string | null
-          department: string | null
-          email: string | null
-          experience: number | null
-          full_name: string
-          id: string
-          max_patients_per_day: number | null
-          phone: string | null
-          qualification: string | null
-          schedule: Json | null
-          specialization: string | null
-          status: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          consultation_fee?: number | null
-          created_at?: string | null
-          department?: string | null
-          email?: string | null
-          experience?: number | null
-          full_name: string
-          id?: string
-          max_patients_per_day?: number | null
-          phone?: string | null
-          qualification?: string | null
-          schedule?: Json | null
-          specialization?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          consultation_fee?: number | null
-          created_at?: string | null
-          department?: string | null
-          email?: string | null
-          experience?: number | null
-          full_name?: string
-          id?: string
-          max_patients_per_day?: number | null
-          phone?: string | null
-          qualification?: string | null
-          schedule?: Json | null
-          specialization?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      face_sheets: {
-        Row: {
-          age: number | null
-          bed_no: string | null
-          consultant_doctor: string | null
-          contact_no: string | null
-          created_at: string | null
-          date_of_admission: string | null
-          discharge_card_prepared_by: string | null
-          discharge_date: string | null
-          discharge_time: string | null
-          final_diagnosis: string | null
-          icd_codes: string | null
-          id: string
-          id_proof_taken: string | null
-          ipd_no: string | null
-          patient_address: string | null
-          patient_category: string | null
-          patient_name: string
-          patient_sub_category: string | null
-          prn_no: string | null
-          provisional_diagnosis: string | null
-          ref_by_doctor: string | null
-          relative_address: string | null
-          relative_name: string | null
-          sex: string | null
-          time: string | null
-          type_of_discharge: string | null
-          updated_at: string | null
-          ward_name: string | null
-        }
-        Insert: {
-          age?: number | null
-          bed_no?: string | null
-          consultant_doctor?: string | null
-          contact_no?: string | null
-          created_at?: string | null
-          date_of_admission?: string | null
-          discharge_card_prepared_by?: string | null
-          discharge_date?: string | null
-          discharge_time?: string | null
-          final_diagnosis?: string | null
-          icd_codes?: string | null
-          id?: string
-          id_proof_taken?: string | null
-          ipd_no?: string | null
-          patient_address?: string | null
-          patient_category?: string | null
-          patient_name: string
-          patient_sub_category?: string | null
-          prn_no?: string | null
-          provisional_diagnosis?: string | null
-          ref_by_doctor?: string | null
-          relative_address?: string | null
-          relative_name?: string | null
-          sex?: string | null
-          time?: string | null
-          type_of_discharge?: string | null
-          updated_at?: string | null
-          ward_name?: string | null
-        }
-        Update: {
-          age?: number | null
-          bed_no?: string | null
-          consultant_doctor?: string | null
-          contact_no?: string | null
-          created_at?: string | null
-          date_of_admission?: string | null
-          discharge_card_prepared_by?: string | null
-          discharge_date?: string | null
-          discharge_time?: string | null
-          final_diagnosis?: string | null
-          icd_codes?: string | null
-          id?: string
-          id_proof_taken?: string | null
-          ipd_no?: string | null
-          patient_address?: string | null
-          patient_category?: string | null
-          patient_name?: string
-          patient_sub_category?: string | null
-          prn_no?: string | null
-          provisional_diagnosis?: string | null
-          ref_by_doctor?: string | null
-          relative_address?: string | null
-          relative_name?: string | null
-          sex?: string | null
-          time?: string | null
-          type_of_discharge?: string | null
-          updated_at?: string | null
-          ward_name?: string | null
-        }
-        Relationships: []
-      }
-      invoices: {
-        Row: {
-          created_at: string | null
-          discount: number | null
-          due_date: string | null
-          id: string
-          invoice_number: string | null
-          issue_date: string | null
-          items: Json | null
-          notes: string | null
-          patient_id: string | null
-          payment_date: string | null
-          payment_method: string | null
-          status: string | null
-          subtotal: number | null
-          tax: number | null
-          total: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          discount?: number | null
-          due_date?: string | null
-          id?: string
-          invoice_number?: string | null
-          issue_date?: string | null
-          items?: Json | null
-          notes?: string | null
-          patient_id?: string | null
-          payment_date?: string | null
-          payment_method?: string | null
-          status?: string | null
-          subtotal?: number | null
-          tax?: number | null
-          total?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          discount?: number | null
-          due_date?: string | null
-          id?: string
-          invoice_number?: string | null
-          issue_date?: string | null
-          items?: Json | null
-          notes?: string | null
-          patient_id?: string | null
-          payment_date?: string | null
-          payment_method?: string | null
-          status?: string | null
-          subtotal?: number | null
-          tax?: number | null
-          total?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "invoices_patient_id_fkey"
-            columns: ["patient_id"]
-            isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      medical_records: {
-        Row: {
-          chief_complaint: string | null
-          created_at: string | null
-          diagnosis: string | null
-          doctor_id: string | null
-          face_sheet_snapshot: Json | null
-          follow_up_date: string | null
-          id: string
-          lab_results: Json | null
-          medications: Json | null
-          notes: string | null
-          patient_id: string | null
-          treatment: string | null
-          updated_at: string | null
-          visit_date: string | null
-          vital_signs: Json | null
-        }
-        Insert: {
-          chief_complaint?: string | null
-          created_at?: string | null
-          diagnosis?: string | null
-          doctor_id?: string | null
-          face_sheet_snapshot?: Json | null
-          follow_up_date?: string | null
-          id?: string
-          lab_results?: Json | null
-          medications?: Json | null
-          notes?: string | null
-          patient_id?: string | null
-          treatment?: string | null
-          updated_at?: string | null
-          visit_date?: string | null
-          vital_signs?: Json | null
-        }
-        Update: {
-          chief_complaint?: string | null
-          created_at?: string | null
-          diagnosis?: string | null
-          doctor_id?: string | null
-          face_sheet_snapshot?: Json | null
-          follow_up_date?: string | null
-          id?: string
-          lab_results?: Json | null
-          medications?: Json | null
-          notes?: string | null
-          patient_id?: string | null
-          treatment?: string | null
-          updated_at?: string | null
-          visit_date?: string | null
-          vital_signs?: Json | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "medical_records_doctor_id_fkey"
-            columns: ["doctor_id"]
-            isOneToOne: false
-            referencedRelation: "doctors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "medical_records_patient_id_fkey"
-            columns: ["patient_id"]
-            isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      patients: {
-        Row: {
-          address: string | null
-          admission_date: string | null
-          age: number | null
-          allergies: string[] | null
-          assigned_doctor_id: string | null
-          assigned_room_id: string | null
-          blood_type: string | null
-          created_at: string | null
-          current_diagnosis: string | null
-          discharge_date: string | null
-          email: string | null
-          emergency_contact: string | null
-          emergency_phone: string | null
-          full_name: string
-          gender: string | null
-          id: string
-          insurance_info: string | null
-          medical_history: string | null
-          phone: string | null
-          status: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          address?: string | null
-          admission_date?: string | null
-          age?: number | null
-          allergies?: string[] | null
-          assigned_doctor_id?: string | null
-          assigned_room_id?: string | null
-          blood_type?: string | null
-          created_at?: string | null
-          current_diagnosis?: string | null
-          discharge_date?: string | null
-          email?: string | null
-          emergency_contact?: string | null
-          emergency_phone?: string | null
-          full_name: string
-          gender?: string | null
-          id?: string
-          insurance_info?: string | null
-          medical_history?: string | null
-          phone?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          address?: string | null
-          admission_date?: string | null
-          age?: number | null
-          allergies?: string[] | null
-          assigned_doctor_id?: string | null
-          assigned_room_id?: string | null
-          blood_type?: string | null
-          created_at?: string | null
-          current_diagnosis?: string | null
-          discharge_date?: string | null
-          email?: string | null
-          emergency_contact?: string | null
-          emergency_phone?: string | null
-          full_name?: string
-          gender?: string | null
-          id?: string
-          insurance_info?: string | null
-          medical_history?: string | null
-          phone?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      rooms: {
-        Row: {
-          amenities: string[] | null
-          assigned_patients: string[] | null
-          capacity: number | null
-          created_at: string | null
-          current_occupancy: number | null
-          daily_rate: number | null
-          equipment: string[] | null
-          floor: number | null
-          id: string
-          last_cleaned: string | null
-          room_number: string
-          status: string | null
-          type: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          amenities?: string[] | null
-          assigned_patients?: string[] | null
-          capacity?: number | null
-          created_at?: string | null
-          current_occupancy?: number | null
-          daily_rate?: number | null
-          equipment?: string[] | null
-          floor?: number | null
-          id?: string
-          last_cleaned?: string | null
-          room_number: string
-          status?: string | null
-          type?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          amenities?: string[] | null
-          assigned_patients?: string[] | null
-          capacity?: number | null
-          created_at?: string | null
-          current_occupancy?: number | null
-          daily_rate?: number | null
-          equipment?: string[] | null
-          floor?: number | null
-          id?: string
-          last_cleaned?: string | null
-          room_number?: string
-          status?: string | null
-          type?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      users: {
-        Row: {
-          created_at: string | null
-          department: string | null
-          email: string
-          full_name: string | null
-          id: string
-          is_active: boolean | null
-          last_login: string | null
-          permissions: string[] | null
-          phone: string | null
-          role: string | null
-          updated_at: string | null
-          username: string
-        }
-        Insert: {
-          created_at?: string | null
-          department?: string | null
-          email: string
-          full_name?: string | null
-          id?: string
-          is_active?: boolean | null
-          last_login?: string | null
-          permissions?: string[] | null
-          phone?: string | null
-          role?: string | null
-          updated_at?: string | null
-          username: string
-        }
-        Update: {
-          created_at?: string | null
-          department?: string | null
-          email?: string
-          full_name?: string | null
-          id?: string
-          is_active?: boolean | null
-          last_login?: string | null
-          permissions?: string[] | null
-          phone?: string | null
-          role?: string | null
-          updated_at?: string | null
-          username?: string
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
@@ -541,21 +31,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -573,14 +67,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -596,14 +92,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -619,14 +117,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -634,14 +134,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
